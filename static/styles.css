@@ -1,0 +1,699 @@
+/* --- Root Variables for Branding & Theming --- */
+:root {
+/* Branding Colors (Pantone-inspired & Key UI Accents) */
+--brand-pink: #F6B7CC; /* Primary brand pink */
+--brand-eggplant: #4B1D3F; /* Dark accent for gradients */
+--brand-capri: #00A3E0; /* Primary brand blue */
+
+/* UI Base Colors (Dark Theme Palette) */
+--bg-primary: #0E0B10; /* Main background color */
+--card-bg-base: rgba(255,255,255,0.06); /* Base for card background */
+--card-bg-gradient-top: rgba(255,255,255,0.07); /* Slightly lighter top for card gradient */
+--card-bg-gradient-bottom: rgba(255,255,255,0.03); /* Darker bottom for card gradient */
+--text-primary: rgba(255,255,255,0.92); /* Primary text color */
+--text-muted: rgba(255,255,255,0.68); /* Muted/secondary text color */
+--stroke-color: rgba(255,255,255,0.12); /* Border/divider color */
+
+/* Action & Status Colors */
+--action-blue: var(--brand-capri); /* Use brand capri for general blue actions */
+--action-red-danger: #FF4D6D; /* Main red for danger buttons */
+--action-red-danger-dark: #C81D4A; /* Darker red for danger button gradient */
+--status-success: #00ff80; /* Green for success states */
+--status-success-tint: rgba(0,255,160,.10);
+--status-error: #ff4d6d; /* Red for error states (matches danger) */
+--status-error-tint: rgba(255,77,109,.10);
+--status-warning-text: rgba(255,120,140,.9); /* Specific text color for warnings/errors */
+
+/* Spacing System */
+--spacing-xxs: 4px;
+--spacing-xs: 8px;
+--spacing-sm: 12px;
+--spacing-md: 16px;
+--spacing-lg: 24px;
+--spacing-xl: 28px; /* For container padding */
+
+/* Dimensions & Effects */
+--border-radius-card: 18px; /* General border-radius for cards */
+--border-radius-element: 14px; /* For inputs, buttons, logo */
+--border-radius-small: 12px; /* For pre, event, platform-card */
+--border-radius-pill: 999px; /* For badge/pill shape */
+
+--shadow-card: 0 18px 50px rgba(0,0,0,0.35); /* Strong shadow for cards */
+--shadow-logo: 0 10px 30px rgba(0,0,0,.35); /* Specific shadow for logo */
+--shadow-button-pink: 0 10px 28px rgba(246,183,204,0.22);
+--shadow-button-capri: 0 10px 28px rgba(0,163,224,0.18);
+--shadow-button-danger: 0 10px 28px rgba(255,77,109,0.18);
+
+--transition-speed: 0.2s ease; /* Global transition speed */
+}
+
+/* --- Universal Box Sizing --- */
+* {
+box-sizing: border-box;
+}
+
+/* --- Body & Global Typography --- */
+body {
+margin: 0;
+font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+background:
+  radial-gradient(1200px 600px at 20% 10%, var(--brand-pink), transparent 55%), /* Pink glow */
+  radial-gradient(1000px 500px at 85% 15%, var(--brand-capri), transparent 55%), /* Capri glow */
+  radial-gradient(900px 500px at 50% 90%, var(--brand-eggplant), transparent 55%), /* Eggplant glow */
+  var(--bg-primary); /* Base background color */
+color: var(--text-primary);
+line-height: 1.5;
+font-size: 14px;
+}
+
+/* --- Links --- */
+a {
+color: inherit; /* Inherit color unless specified by a button class */
+text-decoration: none;
+transition: color var(--transition-speed);
+}
+
+a:hover {
+color: var(--brand-capri); /* Subtle hover effect for links */
+}
+
+/* --- Container --- */
+.container {
+max-width: 1150px; /* Consistent max-width */
+margin: 0 auto;
+padding: var(--spacing-xl) var(--spacing-md) 60px; /* Generous vertical padding */
+}
+
+/* --- Top Bar (Header Section) --- */
+.topbar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--spacing-md);
+margin-bottom: var(--spacing-lg);
+flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.brand {
+display: flex;
+gap: var(--spacing-sm);
+align-items: center;
+}
+
+.brand-logo { /* Consolidated logo styles */
+width: 44px;
+height: 44px;
+border-radius: var(--border-radius-element);
+object-fit: cover;
+box-shadow: var(--shadow-logo); /* Specific shadow for logo */
+border: 1px solid var(--stroke-color);
+background: var(--card-bg-base); /* Consistent background */
+display: block; /* Ensure correct box model */
+}
+
+.h1 {
+font-size: 20px;
+font-weight: 760; /* Specific font weight */
+letter-spacing: 0.2px;
+margin: 0;
+color: var(--text-primary);
+}
+
+.sub {
+margin: var(--spacing-xxs) 0 0; /* Small margin-top for subtitle */
+color: var(--text-muted);
+font-size: 13px;
+}
+
+.topbar-actions { /* For buttons in the topbar (e.g., monitor, empty, back) */
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* --- General Card Styling --- */
+.card {
+background: linear-gradient(180deg, var(--card-bg-gradient-top), var(--card-bg-gradient-bottom));
+border: 1px solid var(--stroke-color);
+border-radius: var(--border-radius-card);
+box-shadow: var(--shadow-card);
+padding: var(--spacing-md);
+min-width: 0; /* Ensures content doesn't overflow */
+}
+
+.card h2 {
+margin: 0 0 var(--spacing-sm); /* Consistent margin */
+font-size: 16px;
+font-weight: 700; /* Bolder for section titles */
+letter-spacing: 0.2px;
+color: var(--text-primary);
+}
+
+/* --- Grid Layouts (Admin Panel Specific) --- */
+.grid { /* Main grid for the admin panel top cards */
+display: grid;
+grid-template-columns: 1.2fr 1fr; /* Create User card wider than Quick Actions */
+gap: var(--spacing-md);
+margin-top: var(--spacing-md); /* Space below the topbar */
+}
+
+@media (max-width: 900px) {
+.grid {
+  grid-template-columns: 1fr; /* Stack on smaller screens */
+}
+}
+
+/* --- Form Elements --- */
+.row { /* General purpose flex row */
+display: flex;
+gap: var(--spacing-sm);
+flex-wrap: wrap;
+align-items: center;
+min-width: 0;
+}
+
+.form-row-group { /* Specific for admin panel form fields */
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+  align-items: flex-end; /* Align labels to the bottom of their rows */
+}
+
+.form-field { /* Specific for individual form fields */
+  flex: 1;
+  min-width: 170px; /* Minimum width before wrapping */
+}
+
+.form-field label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.input, select {
+background: var(--card-bg-base);
+border: 1px solid var(--stroke-color);
+color: var(--text-primary);
+padding: 10px 12px;
+border-radius: var(--border-radius-element);
+outline: none;
+min-width: 170px;
+max-width: 100%;
+font-size: 1em;
+transition: border-color var(--transition-speed), background var(--transition-speed);
+}
+
+.input:focus, select:focus {
+border-color: var(--brand-capri); /* Highlight on focus */
+background: rgba(255,255,255,0.08); /* Slightly lighter on focus */
+}
+
+select {
+width: 100%;
+appearance: none; /* Remove default select arrow */
+-webkit-appearance: none;
+background-image: url('data:image/svg+xml;utf8,<svg fill="%23a0a0a0" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Custom arrow */
+background-repeat: no-repeat;
+background-position: right var(--spacing-sm) center;
+background-size: 16px;
+}
+
+/* --- Buttons --- */
+.btn {
+border: 0;
+cursor: pointer;
+padding: 10px 14px;
+border-radius: var(--border-radius-element);
+font-weight: 700;
+color: #0b0b0b; /* Dark text for light buttons */
+background: linear-gradient(135deg, var(--brand-pink), rgba(255,255,255,0.82));
+box-shadow: var(--shadow-button-pink);
+transition: transform var(--transition-speed), box-shadow var(--transition-speed), opacity var(--transition-speed);
+display: inline-flex; /* Align icon and text */
+align-items: center;
+gap: var(--spacing-xxs); /* Small gap for icon */
+white-space: nowrap; /* Prevent text wrapping */
+}
+
+.btn:hover {
+transform: translateY(-2px); /* Subtle lift effect */
+box-shadow: var(--shadow-card); /* More pronounced shadow on hover */
+opacity: 0.9;
+}
+
+.btn.blue {
+color: #071018; /* Darker text for blue button */
+background: linear-gradient(135deg, var(--action-blue), rgba(255,255,255,0.85));
+box-shadow: var(--shadow-button-capri);
+}
+
+.btn.ghost {
+color: var(--text-primary);
+background: var(--card-bg-base);
+border: 1px solid var(--stroke-color);
+box-shadow: none;
+}
+.btn.ghost:hover {
+transform: translateY(-2px);
+background: rgba(255,255,255,0.08);
+border-color: var(--brand-capri); /* Highlight border on hover */
+box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* Subtle lift shadow */
+}
+
+.btn.danger {
+color: #fff;
+background: linear-gradient(135deg, var(--action-red-danger), var(--action-red-danger-dark));
+box-shadow: var(--shadow-button-danger);
+}
+
+/* --- Tables (General Styling for Admin Panel & Monitoring) --- */
+.table {
+width: 100%;
+display: grid;
+gap: var(--spacing-xs);
+margin-top: var(--spacing-md);
+}
+
+.thead {
+display: contents; /* Allows children to participate in grid layout */
+font-weight: 700; /* Bolder header */
+font-size: 0.9em;
+color: var(--text-muted);
+}
+
+.thead > div {
+padding: var(--spacing-sm) var(--spacing-xs);
+border-bottom: 1px solid var(--stroke-color); /* Separator for header */
+text-align: left;
+}
+
+.trow {
+display: contents; /* Allows children to participate in grid layout */
+}
+
+.trow > div {
+padding: var(--spacing-sm) var(--spacing-xs);
+border-top: 1px solid var(--stroke-color);
+display: flex;
+align-items: center; /* Vertically align content by default */
+min-width: 0; /* Prevent content overflow issues */
+}
+
+.trow:first-of-type > div { /* First data row, remove top border */
+  border-top: none;
+}
+
+/* --- Badge & Dot --- */
+.badge {
+display: inline-flex;
+align-items: center;
+gap: var(--spacing-xxs);
+padding: 6px 10px;
+border-radius: var(--border-radius-pill); /* Pill shape */
+font-size: 12px;
+border: 1px solid var(--stroke-color);
+background: var(--card-bg-base);
+color: var(--text-primary);
+white-space: nowrap;
+}
+
+.dot {
+width: 8px;
+height: 8px;
+border-radius: var(--border-radius-pill); /* Circle */
+background: var(--brand-capri); /* Default dot color */
+}
+.dot.pink { background: var(--brand-pink); } /* Specific pink for "David" */
+.dot.egg { background: #B389FF; } /* Specific color from original CSS */
+.dot.default { background: var(--text-muted); } /* For generic grey dots */
+
+/* --- Utility Classes --- */
+.small {
+font-size: 12px;
+color: var(--text-muted);
+}
+
+.hr {
+height: 1px;
+background: var(--stroke-color);
+margin: var(--spacing-md) 0;
+}
+
+.inline-form {
+display: inline; /* Allows forms to sit next to other elements */
+margin: 0;
+}
+
+/* --- Admin Panel Specific Styles --- */
+.create-user-card {
+  /* Styles handled by general .card and .grid rules */
+}
+
+.quick-actions-card {
+  /* Styles handled by general .card and .grid rules */
+}
+
+.action-list {
+  margin-top: 0; /* Ensure no extra margin from <p> */
+  line-height: 1.6;
+  color: var(--text-muted); /* Muted text for action list */
+}
+
+/* --- Admin Panel Usuarios Table Specifics --- */
+.users-card {
+margin-top: var(--spacing-md); /* Spacing from the above grid */
+}
+
+.users-card .table {
+  grid-template-columns: 1.5fr 0.8fr 0.8fr 1.5fr 0.5fr 1.5fr; /* Admin panel table columns */
+}
+
+.users-card .user-info {
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: var(--spacing-xs);
+}
+
+.users-card .user-info .badge {
+  margin-bottom: var(--spacing-xxs); /* Smaller margin for badge */
+}
+
+.users-card .scheduler-info {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  margin-top: var(--spacing-xxs);
+}
+.users-card .error-message {
+  color: var(--status-warning-text); /* Lighter red for error message */
+}
+
+.users-card .user-last-video-path {
+  word-break: break-word;
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.users-card .user-videos-today b {
+  font-size: 1.1em;
+}
+
+/* --- Admin Panel Responsive Table --- */
+@media (max-width: 992px) {
+  .users-card .table {
+      grid-template-columns: 1.5fr 1fr 1fr; /* User info, Niche, Actions */
+  }
+  .users-card .thead > div:nth-child(4), /* Último video */
+  .users-card .thead > div:nth-child(5), /* Hoy */
+  .users-card .trow > div:nth-child(4), /* Último video data */
+  .users-card .trow > div:nth-child(5) { /* Hoy data */
+      display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .users-card .table {
+      grid-template-columns: 1fr;
+      gap: 0; /* No gap when stacking */
+  }
+  .users-card .thead {
+      display: none;
+  }
+  .users-card .trow {
+      display: block; /* Each row becomes a block */
+      margin-bottom: var(--spacing-sm);
+      padding: var(--spacing-sm);
+      border: 1px solid var(--stroke-color);
+      border-radius: var(--border-radius-card);
+      background: var(--card-bg-base); /* Background for stacked rows */
+  }
+  .users-card .trow > div {
+      border-top: none;
+      padding: var(--spacing-xs) 0;
+      align-items: flex-start;
+      flex-direction: column;
+  }
+  .users-card .trow:not(:last-child) {
+      margin-bottom: var(--spacing-sm);
+  }
+  .users-card .action-group {
+      width: 100%;
+      margin-top: var(--spacing-sm);
+      justify-content: flex-start;
+  }
+}
+
+/* --- Monitoring Page Specific Styles --- */
+.users-monitor-card {
+  margin-top: var(--spacing-md);
+}
+
+.monitor-table {
+  grid-template-columns: 1.2fr 0.8fr 1fr 2.5fr 2.5fr; /* Specific columns for monitor table */
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.monitor-table .trow > div {
+  align-items: flex-start; /* Align content to the top for multi-line cells */
+}
+
+.monitor-table .td-last-run,
+.monitor-table .td-last-video,
+.monitor-table .td-error {
+  color: var(--text-muted); /* Consistent muted color for paths/runs */
+  font-size: 0.9em;
+  line-height: 1.3;
+  word-break: break-word; /* Ensure long paths/errors wrap */
+}
+
+.monitor-table .td-error {
+  color: var(--status-warning-text); /* Specific error text color */
+}
+
+/* --- Monitoring Page Responsive Table --- */
+@media (max-width: 992px) {
+  .monitor-table {
+      grid-template-columns: 1fr 1fr 1.5fr; /* User, Run, Error */
+  }
+  .monitor-table .th-status, .monitor-table .th-last-video,
+  .monitor-table .td-status, .monitor-table .td-last-video {
+      display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .monitor-table {
+      grid-template-columns: 1fr;
+      gap: 0;
+  }
+  .monitor-table .thead {
+      display: none;
+  }
+  .monitor-table .monitor-trow { /* Each row becomes a block */
+      display: block;
+      margin-bottom: var(--spacing-sm);
+      padding: var(--spacing-sm);
+      border: 1px solid var(--stroke-color);
+      border-radius: var(--border-radius-card);
+      background: var(--card-bg-base);
+  }
+  .monitor-table .monitor-trow > div {
+      border-top: none;
+      padding: var(--spacing-xs) 0;
+      align-items: flex-start;
+      flex-direction: column;
+  }
+  /* Add labels for stacked columns (Creative Touch: make them strong) */
+  .monitor-table .td-user::before { content: "Usuario: "; font-weight: 700; color: var(--text-primary); margin-right: var(--spacing-xxs); }
+  .monitor-table .td-status::before { content: "Estado: "; font-weight: 700; color: var(--text-primary); margin-right: var(--spacing-xxs); display: block; }
+  .monitor-table .td-last-run::before { content: "Último run: "; font-weight: 700; color: var(--text-primary); margin-right: var(--spacing-xxs); }
+  .monitor-table .td-last-video::before { content: "Último video: "; font-weight: 700; color: var(--text-primary); margin-right: var(--spacing-xxs); display: block; }
+  .monitor-table .td-error::before { content: "Error: "; font-weight: 700; color: var(--text-primary); margin-right: var(--spacing-xxs); }
+
+  /* Ensure previously hidden columns are displayed in stacked view */
+  .monitor-table .td-status, .monitor-table .td-last-video {
+      display: flex; /* Override previous `display: none` for mobile */
+  }
+}
+
+/* --- Action Group (for buttons like Edit/Generate/Delete) --- */
+.action-group {
+display: flex;
+align-items: center;
+gap: var(--spacing-sm); /* Slightly larger gap for action buttons */
+flex-wrap: nowrap; /* Prevent wrapping in most cases */
+justify-content: flex-end; /* Align to end */
+}
+.action-group .btn {
+white-space: nowrap; /* Keep button text on one line */
+}
+
+/* --- Pills (Status indicators) --- */
+.pill{
+display:inline-flex;
+align-items:center;
+gap:var(--spacing-xs);
+padding:6px 10px;
+border-radius:var(--border-radius-pill);
+background:rgba(255,255,255,.07);
+border:1px solid rgba(255,255,255,.10);
+font-size:12px;
+white-space: nowrap; /* Prevent wrapping */
+transition: background var(--transition-speed), border-color var(--transition-speed);
+}
+.pill:hover {
+background:rgba(255,255,255,.10);
+border-color:rgba(255,255,255,.15);
+}
+
+.pill.ok{
+background:var(--status-success-tint); /* Greenish tint for success */
+border-color:rgba(0,255,160,.25);
+color: var(--status-success); /* Brighter text for success */
+}
+
+.pill.fail{
+background:var(--status-error-tint); /* Reddish tint for failure */
+border-color:rgba(255,77,109,.25);
+color: var(--status-error); /* Brighter text for failure */
+}
+
+/* --- Timeline (Event logging, if used) --- */
+.events{
+display:flex;
+flex-direction:column;
+gap:var(--spacing-sm);
+margin-top: var(--spacing-md);
+}
+
+.event{
+padding:var(--spacing-sm);
+border-radius:var(--border-radius-small);
+background:rgba(255,255,255,.05);
+border:1px solid rgba(255,255,255,.10);
+}
+
+.event-top{
+display:flex;
+align-items:center;
+gap:var(--spacing-xs);
+margin-bottom:var(--spacing-xs);
+}
+
+.event-msg{
+font-size:14px;
+color:var(--text-primary);
+}
+
+.event-pre{
+margin-top:var(--spacing-sm);
+white-space:pre-wrap;
+font-size:12px;
+color:rgba(255,255,255,.85);
+background:rgba(0,0,0,.25);
+border:1px solid var(--stroke-color);
+border-radius:var(--border-radius-small);
+padding:var(--spacing-xs);
+}
+
+/* --- Platform Grid (Settings/Edit user page specific) --- */
+.platform-grid{
+display:grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: var(--spacing-sm);
+margin-top: var(--spacing-sm);
+}
+@media (max-width: 900px){
+.platform-grid{ grid-template-columns: 1fr; }
+}
+
+.platform-card{
+background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+border: 1px solid var(--stroke-color);
+border-radius: var(--border-radius-small);
+padding: var(--spacing-sm);
+min-width: 0;
+transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+.platform-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 20px rgba(0,0,0,0.25); /* Subtle lift */
+}
+
+.platform-head{
+display:flex;
+align-items:flex-start;
+justify-content:space-between;
+gap:var(--spacing-sm);
+margin-bottom: var(--spacing-sm);
+min-width: 0;
+}
+
+.platform-title{
+display:flex;
+align-items:center;
+gap:var(--spacing-sm);
+font-weight: 760;
+letter-spacing: 0.2px;
+}
+
+.platform-meta{
+color: var(--text-muted);
+font-size: 12px;
+margin-top: 4px;
+line-height: 1.25;
+}
+
+.platform-controls{
+display:grid;
+grid-template-columns: 1fr 1fr;
+gap: var(--spacing-sm);
+min-width: 0;
+}
+.platform-controls > div{ min-width: 0; }
+@media (max-width: 680px){
+.platform-controls{ grid-template-columns: 1fr; }
+}
+
+.toggle{
+display:inline-flex;
+align-items:center;
+gap:var(--spacing-sm);
+padding: var(--spacing-xs) var(--spacing-sm);
+border-radius: var(--border-radius-pill);
+border: 1px solid var(--stroke-color);
+background: var(--card-bg-base);
+white-space: nowrap;
+color: var(--text-primary);
+font-size: 0.9em;
+transition: background var(--transition-speed), border-color var(--transition-speed);
+}
+.toggle:hover {
+background: rgba(255,255,255,0.08);
+border-color: var(--brand-capri);
+}
+.toggle input{ transform: translateY(1px); /* Small adjustment for checkbox */ }
+
+.cred-grid{
+display:grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: var(--spacing-sm);
+margin-top: var(--spacing-sm);
+}
+.cred-grid .full{ grid-column: 1 / -1; }
+@media (max-width: 900px){
+.cred-grid{ grid-template-columns: 1fr; }
+.cred-grid .full{ grid-column: auto; }
+}
+
+/* --- Specific admin panel form elements --- */
+.action-button-row {
+  margin-top: var(--spacing-sm);
+}
+.tip-text {
+  font-size: 0.8em;
+  color: var(--text-muted);
+}

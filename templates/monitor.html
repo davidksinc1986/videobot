@@ -1,0 +1,74 @@
+<html lang="es"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Monitoreo</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <img class="brand-logo" src="/static/bot1.png" alt="bot">
+        <div>
+          <p class="h1">Monitoreo</p>
+          <p class="sub">Estado por usuario</p>
+        </div>
+      </div>
+      <div class="topbar-actions"> 
+        <span class="badge">
+          <span class="dot"></span>
+          {{ t.language }}:
+          <b>{{ t.spanish if lang=='es' else t.english }}</b>
+        </span>
+
+        {% set next_url = request.full_path if request.full_path else '/' %}
+        {% if lang == 'es' %}
+          <a class="btn ghost" href="/set-lang/en?next={{ next_url|urlencode }}">{{ t.switch_to_en }}</a>
+        {% else %}
+          <a class="btn ghost" href="/set-lang/es?next={{ next_url|urlencode }}">{{ t.switch_to_es }}</a>
+        {% endif %}<!-- Renamed from 'row' for consistency with previous page -->
+        <a class="btn ghost" href="/">← Volver</a>
+      </div>
+    </div>
+
+    <div class="card users-monitor-card"> <!-- Added a specific class for this card -->
+      <h2>Usuarios</h2>
+
+      {% if not usuarios %}
+        <p class="small">No hay usuarios.</p>
+      {% else %}
+        <div class="table monitor-table"> <!-- Added a specific class for this table -->
+          <div class="thead">
+            <div class="th-user"><b>Usuario</b></div>
+            <div class="th-status"><b>Estado</b></div>
+            <div class="th-last-run"><b>Último run</b></div>
+            <div class="th-last-video"><b>Último video</b></div>
+            <div class="th-error"><b>Error</b></div>
+          </div>
+
+          {% for u in usuarios %}
+          <div class="trow monitor-trow">
+            <div class="td-user">
+              <span class="badge">
+                <span class="dot {% if u.nombre|lower == 'david' %}pink{% else %}default{% endif %}"></span> <!-- Dynamic dot color -->
+                {{ u.nombre }}
+              </span>
+            </div>
+            <div class="td-status">{{ u.estado }}</div>
+            <div class="td-last-run small">{{ u.ultimo_run }}</div>
+            <div class="td-last-video small">{{ u.ultimo_video }}</div>
+            <div class="td-error small">
+              {% if u.ultimo_error %}
+                <span class="error-text">⚠️ {{ u.ultimo_error[:180] }}</span> <!-- Added error-text class -->
+              {% else %}
+                -
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</body></html>

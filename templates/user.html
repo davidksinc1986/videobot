@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="{{ 'en' if lang=='en' else 'es' }}">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ t.user_page_title }} • {{ user.nombre }}</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <p class="h1">{{ t.user_page_title }}: {{ user.nombre }}</p>
+        <p class="sub">Config + platforms + credentials</p>
+      </div>
+
+      <div class="row">
+        <span class="badge">
+          <span class="dot"></span>
+          {{ t.language }}:
+          <b>{{ t.spanish if lang=='es' else t.english }}</b>
+        </span>
+
+        {% set next_url = request.full_path if request.full_path else '/' %}
+        {% if lang == 'es' %}
+          <a class="btn ghost" href="/set-lang/en?next={{ next_url|urlencode }}">{{ t.get('switch_to_en','English') }}</a>
+        {% else %}
+          <a class="btn ghost" href="/set-lang/es?next={{ next_url|urlencode }}">{{ t.get('switch_to_es','Español') }}</a>
+        {% endif %}
+
+        <a class="btn ghost" href="/">{{ t.back }}</a>
+        <a class="btn" href="/generar/{{ user.nombre }}">🎬 {{ t.generate }}</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="card">
+        <h2>{{ t.config_general }}</h2>
+
+        <form action="/usuario/{{ user.nombre }}/guardar" method="POST">
+          <div class="row">
+            <div style="min-width:240px;">
+              <label>{{ t.niche }}</label><br/>
+              <select name="nicho" style="width:100%;">
+                {% for k in nichos %}
+                  <option value="{{ k }}" {% if user.nicho == k %}selected{% endif %}>
+                    {{ k.replace("_", " ").title() }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div style="min-width:140px;">
+              <label>{{ t.user_language }}</label><br/>
+              <select name="idioma" style="width:100%;">
+                <option value="es" {% if user.idioma=='es' %}selected{% endif %}>es</option>
+                <option value="en" {% if user.idioma=='en' %}selected{% endif %}>en</option>
+                <option value="pt" {% if user.idioma=='pt' %}selected{% endif %}>pt</option>
+              </select>
+            </div>
+
+            <div style="min-width:160px;">
+              <label>{{ t.interval_min }}</label><br/>
+              <input class="input" name="intervalo_minutos" value="{{ user.intervalo_minutos }}" style="width:100%;" />
+            </div>
+
+            <div style="min-width:160px;">
+              <label>{{ t.max_per_day }}</label><br/>
+              <input class="input" name="max_videos_dia" value="{{ user.max_videos_dia }}" style="width:100%;" />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <div style="min-width:160px;">
+              <label>{{ t.window_start }}</label><br/>
+              <input class="input" name="ventana_inicio" value="{{ user.ventana_inicio }}" style="width:100%;" />
+            </div>
+            <div style="min-width:160px;">
+              <label>{{ t.window_end }}</label><br/>
+              <input class="input" name="ventana_fin" value="{{ user.ventana_fin }}" style="width:100%;" />
+            </div>
+            <div style="min-width:260px; flex:1;">
+              <label>{{ t.final_hook }}</label><br/>
+              <input class="input" name="hook_final" value="{{ user.hook_final }}" style="width:100%;" />
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <label class="toggle">
+              <input type="checkbox" name="activo_scheduler" {% if user.activo_scheduler %}checked{% endif %}/>
+              <span>{{ t.scheduler_active }}</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" name="continuar_si_falla" {% if user.continuar_si_falla %}checked{% endif %}/>
+              <span>{{ t.continue_if_fail }}</span>
+            </label>
+          </div>
+
+          <div class="hr"></div>
+
+          <h2>{{ t.api_creds_optional }}</h2>
+          <div class="cred-grid">
+            <div class="full">
+              <div class="small">{{ t.api_creds_hint }}</div>
+            </div>
+
+            <div>
+              <label>{{ t.pexels_key }}</label><br/>
+              <input class="input" name="pexels_api_key" value="{{ user.credenciales.pexels_api_key }}" style="width:100%;" />
+            </div>
+
+            <div>
+              <label>{{ t.eleven_key }}</label><br/>
+              <input class="input" name="elevenlabs_api_key" value="{{ user.credenciales.elevenlabs_api_key }}" style="width:100%;" />
+            </div>
+
+            <div>
+              <label>{{ t.eleven_voice }}</label><br/>
+              <input class="input" name="eleven_voice_id" value="{{ user.credenciales.eleven_voice_id }}" style="width:100%;" />
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h2>{{ t.platforms }}</h2>
+
+          <div class="platform-grid">
+            <!-- YouTube -->
+            <div class="platform-card">
+              <div class="platform-head">
+                <div style="min-width:0;">
+                  <div class="platform-title">
+                    <span class="badge"><span class="dot pink"></span> YouTube</span>
+                  </div>
+                  <div class="platform-meta">Uploader principal • Shorts 9:16</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" name="youtube_activo" {% if user.youtube_activo %}checked{% endif %}/>
+                  <span>{{ t.active }}</span>
+                </label>
+              </div>
+
+              <div class="platform-controls">
+                <div>
+                  <label>{{ t.yt_backend }}</label><br/>
+                  <select name="youtube_backend" {% if user._is_david_legacy %}disabled{% endif %}>
+                    <option value="api" selected>api</option>
+                  </select>
+
+                  <label style="margin-top:8px; display:inline-block;">{{ t.yt_auth }}</label><br/>
+                  {% if user._is_david_legacy %}
+                    <select name="youtube_auth_method" disabled>
+                      <option value="legacy" selected>{{ t.yt_legacy }}</option>
+                    </select>
+                  {% else %}
+                    <select name="youtube_auth_method">
+                      <option value="token_upload" {% if user.youtube_auth_method=='token_upload' %}selected{% endif %}>{{ t.yt_token_upload }}</option>
+                      <option value="oauth_web" {% if user.youtube_auth_method=='oauth_web' %}selected{% endif %}>{{ t.yt_oauth_web }}</option>
+                    </select>
+                    <div class="small" style="margin-top:6px;">{{ t.yt_token_hint }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- TikTok -->
+            <div class="platform-card">
+              <div class="platform-head">
+                <div style="min-width:0;">
+                  <div class="platform-title">
+                    <span class="badge"><span class="dot"></span> TikTok</span>
+                  </div>
+                  <div class="platform-meta">Automatización temporal • Playwright/Selenium</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" name="tiktok_activo" {% if user.tiktok_activo %}checked{% endif %}/>
+                  <span>{{ t.active }}</span>
+                </label>
+              </div>
+
+              <div class="platform-controls">
+                <div>
+                  <label>{{ t.tt_backend }}</label><br/>
+                  <select name="tiktok_backend">
+                    <option value="playwright" {% if user.tiktok_backend=='playwright' %}selected{% endif %}>playwright</option>
+                    <option value="selenium" {% if user.tiktok_backend=='selenium' %}selected{% endif %}>selenium</option>
+                    <option value="api" {% if user.tiktok_backend=='api' %}selected{% endif %}>api</option>
+                  </select>
+
+                  <label style="margin-top:8px; display:inline-block;">{{ t.note }}</label><br/>
+                  <div class="small">{{ t.recommended_pw }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Instagram -->
+            <div class="platform-card">
+              <div class="platform-head">
+                <div style="min-width:0;">
+                  <div class="platform-title">
+                    <span class="badge"><span class="dot egg"></span> Instagram Reels</span>
+                  </div>
+                  <div class="platform-meta">Reels • Automatización temporal</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" name="instagram_activo" {% if user.instagram_activo %}checked{% endif %}/>
+                  <span>{{ t.active }}</span>
+                </label>
+              </div>
+
+              <div class="platform-controls">
+                <div>
+                  <label>{{ t.ig_backend }}</label><br/>
+                  <select name="instagram_backend">
+                    <option value="playwright" {% if user.instagram_backend=='playwright' %}selected{% endif %}>playwright</option>
+                    <option value="selenium" {% if user.instagram_backend=='selenium' %}selected{% endif %}>selenium</option>
+                    <option value="api" {% if user.instagram_backend=='api' %}selected{% endif %}>api</option>
+                  </select>
+
+                  <label style="margin-top:8px; display:inline-block;">{{ t.session }}</label><br/>
+                  <div class="small" style="word-break:break-word;">/sessions/{{ user.nombre }}/instagram</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Facebook -->
+            <div class="platform-card">
+              <div class="platform-head">
+                <div style="min-width:0;">
+                  <div class="platform-title">
+                    <span class="badge"><span class="dot"></span> Facebook Reels</span>
+                  </div>
+                  <div class="platform-meta">Reels • Automatización temporal</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" name="facebook_activo" {% if user.facebook_activo %}checked{% endif %}/>
+                  <span>{{ t.active }}</span>
+                </label>
+              </div>
+
+              <div class="platform-controls">
+                <div>
+                  <label>{{ t.fb_backend }}</label><br/>
+                  <select name="facebook_backend">
+                    <option value="playwright" {% if user.facebook_backend=='playwright' %}selected{% endif %}>playwright</option>
+                    <option value="selenium" {% if user.facebook_backend=='selenium' %}selected{% endif %}>selenium</option>
+                    <option value="api" {% if user.facebook_backend=='api' %}selected{% endif %}>api</option>
+                  </select>
+
+                  <label style="margin-top:8px; display:inline-block;">{{ t.session }}</label><br/>
+                  <div class="small" style="word-break:break-word;">/sessions/{{ user.nombre }}/facebook</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <button class="btn blue" type="submit">💾 {{ t.save }}</button>
+          </div>
+        </form>
+
+        {% if user.nombre|lower != 'david' %}
+          <div class="row" style="margin-top:10px;">
+            <form action="/usuario/{{ user.nombre }}/eliminar" method="POST"
+                  onsubmit="return confirm('{{ t.delete }} {{user.nombre}}?');" style="margin:0;">
+              <button class="btn danger" type="submit">🗑 {{ t.delete }}</button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <h2>{{ t.upload_creds_sessions }}</h2>
+
+        {% if user._is_david_legacy %}
+          <p class="small">{{ t.david_legacy_info }}</p>
+        {% else %}
+          <p class="small">{{ t.yt_upload_info }}</p>
+          <form action="/usuario/{{ user.nombre }}/upload/youtube" method="POST" enctype="multipart/form-data">
+            <div class="row">
+              <input class="input" type="file" name="file" />
+              <button class="btn" type="submit">⬆️ {{ t.upload_to_youtube }}</button>
+            </div>
+          </form>
+        {% endif %}
+
+        <div class="hr"></div>
+
+        <p class="small">{{ t.social_upload_info }}</p>
+
+        <form action="/usuario/{{ user.nombre }}/upload/tiktok" method="POST" enctype="multipart/form-data">
+          <div class="row">
+            <input class="input" type="file" name="file" />
+            <button class="btn ghost" type="submit">⬆️ {{ t.upload_to_tiktok }}</button>
+          </div>
+        </form>
+
+        <form action="/usuario/{{ user.nombre }}/upload/instagram" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
+          <div class="row">
+            <input class="input" type="file" name="file" />
+            <button class="btn ghost" type="submit">⬆️ {{ t.upload_to_instagram }}</button>
+          </div>
+        </form>
+
+        <form action="/usuario/{{ user.nombre }}/upload/facebook" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
+          <div class="row">
+            <input class="input" type="file" name="file" />
+            <button class="btn ghost" type="submit">⬆️ {{ t.upload_to_facebook }}</button>
+          </div>
+        </form>
+
+        <!-- ✅ LOGIN + RESET CREDENTIALS -->
+        <div class="hr"></div>
+
+        <h2>{{ t.get('login_start', 'Iniciar login') }}</h2>
+        <p class="small">{{ t.get('login_help', 'Abre el navegador para iniciar sesión y guarda la sesión por usuario.') }}</p>
+
+        <div class="row" style="flex-wrap:wrap; gap:10px;">
+          <form action="/usuario/{{ user.nombre }}/login/tiktok" method="POST" style="margin:0;">
+            <button class="btn" type="submit">🔐 TikTok</button>
+          </form>
+
+          <form action="/usuario/{{ user.nombre }}/login/instagram" method="POST" style="margin:0;">
+            <button class="btn" type="submit">🔐 Instagram</button>
+          </form>
+
+          <form action="/usuario/{{ user.nombre }}/login/facebook" method="POST" style="margin:0;">
+            <button class="btn" type="submit">🔐 Facebook</button>
+          </form>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>{{ t.get('reset_creds', 'Eliminar credenciales / sesión') }}</h2>
+        <p class="small">{{ t.get('reset_creds_help', 'Si una sesión expiró o cambiaste contraseña, elimina credenciales y vuelve a iniciar login o sube el token de nuevo.') }}</p>
+
+        <div class="row" style="flex-wrap:wrap; gap:10px;">
+          {% if user.nombre|lower != 'david' %}
+          <form action="/usuario/{{ user.nombre }}/reset/youtube" method="POST"
+                onsubmit="return confirm('¿Eliminar token.pickle de YouTube para {{ user.nombre }}?');"
+                style="margin:0;">
+            <button class="btn danger" type="submit">🧹 YouTube token</button>
+          </form>
+          {% endif %}
+
+          <form action="/usuario/{{ user.nombre }}/reset/tiktok" method="POST"
+                onsubmit="return confirm('¿Eliminar sesión TikTok para {{ user.nombre }}?');"
+                style="margin:0;">
+            <button class="btn danger" type="submit">🧹 TikTok sesión</button>
+          </form>
+
+          <form action="/usuario/{{ user.nombre }}/reset/instagram" method="POST"
+                onsubmit="return confirm('¿Eliminar sesión Instagram para {{ user.nombre }}?');"
+                style="margin:0;">
+            <button class="btn danger" type="submit">🧹 Instagram sesión</button>
+          </form>
+
+          <form action="/usuario/{{ user.nombre }}/reset/facebook" method="POST"
+                onsubmit="return confirm('¿Eliminar sesión Facebook para {{ user.nombre }}?');"
+                style="margin:0;">
+            <button class="btn danger" type="submit">🧹 Facebook sesión</button>
+          </form>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>{{ t.status }}</h2>
+        <div class="row">
+          <span class="badge"><span class="dot"></span> {{ t.status }}: <b>{{ user.estado }}</b></span>
+          <span class="badge"><span class="dot pink"></span> {{ t.videos_today }}: <b>{{ user.videos_hoy }}/{{ user.max_videos_dia }}</b></span>
+        </div>
+
+        <p class="small" style="margin-top:10px;">
+          {{ t.last_run }}: {{ user.ultimo_run }}<br/>
+          {{ t.last_video }}: {{ user.ultimo_video }}<br/>
+        </p>
+
+        {% if user.ultimo_error %}
+          <div class="card" style="background: rgba(255,77,109,0.10); border: 1px solid rgba(255,77,109,0.25);">
+            <h2>{{ t.last_error }}</h2>
+            <pre style="white-space:pre-wrap; font-size:12px; color:rgba(255,255,255,0.85);">{{ user.ultimo_error }}</pre>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
