@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VideoBot Login</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="container" style="max-width:640px;">
+    <div class="card">
+      <h2>{{ t.login if t.login else 'Login' }}</h2>
+      <div class="row"><a class="btn ghost" href="/set-lang/es?next=/login">ES</a><a class="btn ghost" href="/set-lang/en?next=/login">EN</a><a class="btn ghost" href="/set-lang/pt?next=/login">PT</a></div>
+      <p class="small">Superuser usa credenciales de entorno. Cada usuario entra con su correo/contraseña asignados.</p>
+      {% if error %}<div class="small" style="color:#ff6b81;">{{ error }}</div>{% endif %}
+      <form action="/login" method="POST">
+        <div class="row">
+          <div style="min-width:240px; flex:1;">
+            <label>{{ t.email if t.email else 'Email' }}</label><br/>
+            <input class="input" name="email" type="email" required style="width:100%;" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <div style="min-width:240px; flex:1;">
+            <label>{{ t.password if t.password else 'Password' }}</label><br/>
+            <input class="input" name="password" type="password" required style="width:100%;" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:14px;">
+          <button class="btn blue" type="submit">🔐 Entrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

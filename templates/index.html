@@ -21,21 +21,20 @@
         <span class="badge">
           <span class="dot"></span>
           {{ t.language }}:
-          <b>{{ t.spanish if lang=='es' else t.english }}</b>
+          <b>{% if lang=='es' %}{{ t.spanish }}{% elif lang=='pt' %}{{ t.portuguese }}{% else %}{{ t.english }}{% endif %}</b>
         </span>
 
         {% set next_url = request.full_path if request.full_path else '/' %}
-        {% if lang == 'es' %}
-          <a class="btn ghost" href="/set-lang/en?next={{ next_url|urlencode }}">{{ t.switch_to_en }}</a>
-        {% else %}
-          <a class="btn ghost" href="/set-lang/es?next={{ next_url|urlencode }}">{{ t.switch_to_es }}</a>
-        {% endif %}
+        <a class="btn ghost" href="/set-lang/es?next={{ next_url|urlencode }}">{{ t.switch_to_es }}</a>
+        <a class="btn ghost" href="/set-lang/en?next={{ next_url|urlencode }}">{{ t.switch_to_en }}</a>
+        <a class="btn ghost" href="/set-lang/pt?next={{ next_url|urlencode }}">{{ t.switch_to_pt }}</a>
+        {% if auth.role != "anon" %}<span class="badge"><span class="dot pink"></span><b>{{ auth.role }}</b></span><a class="btn ghost" href="/logout">Salir</a>{% endif %}
       </div>
     </div>
 
     <div class="grid top-cards-grid">
-      <div class="card create-user-card">
-        <h2>Crear usuario</h2>
+      {% if auth.role=="superuser" %}<div class="card create-user-card">
+        <h2>{{ t.create_user }}</h2>
 
         <form action="/crear" method="POST">
           <div class="form-row-group">
@@ -56,17 +55,66 @@
             </div>
 
             <div class="form-field">
-              <label>Idioma</label>
+              <label>{{ t.user_language }}</label>
               <select name="idioma">
                 <option value="es" selected>es</option>
                 <option value="en">en</option>
                 <option value="pt">pt</option>
               </select>
             </div>
+
+            <div class="form-field">
+              <label>Fuente</label>
+              <select name="content_source">
+                <option value="ai" selected>IA</option>
+                <option value="file">Archivo</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Archivo (opcional)</label>
+              <input class="input" name="content_file_path" placeholder="nichos/motivacion.txt"/>
+            </div>
+
+            <div class="form-field">
+              <label>Voz</label>
+              <select name="voice_provider">
+                <option value="gtts" selected>gtts (free)</option>
+                <option value="elevenlabs">elevenlabs</option>
+                <option value="auto">auto</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Video</label>
+              <select name="video_provider">
+                <option value="pixabay" selected>pixabay (free)</option>
+                <option value="pexels">pexels</option>
+                <option value="auto">auto</option>
+                <option value="fallback">fallback</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Guion IA</label>
+              <select name="script_provider">
+                <option value="local" selected>local</option>
+                <option value="openai">openai</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Correo login</label>
+              <input class="input" name="email" type="email" placeholder="cliente@correo.com" required/>
+            </div>
+            <div class="form-field">
+              <label>Contraseña login</label>
+              <input class="input" type="password" name="password" placeholder="******" required/>
+            </div>
           </div>
 
           <div class="action-button-row">
-            <button class="btn blue" type="submit">➕ Crear</button>
+            <button class="btn blue" type="submit">➕ {{ t.create }}</button>
           </div>
         </form>
 
@@ -94,7 +142,7 @@
         <form class="inline-form" action="/admin/limpiar/temp" method="POST">
           <button class="btn ghost" type="submit">🧹 Vaciar Audios</button>
         </form>
-      </div>
+      </div>{% endif %}
     </div>
 
     <div class="card users-card">
@@ -143,7 +191,7 @@
               <a class="btn ghost" href="/usuario/{{ u.nombre }}">⚙️ Editar</a>
               <a class="btn" href="/generar/{{ u.nombre }}">🎬 Generar</a>
 
-              {% if u.nombre|lower != 'david' %}
+              {% if auth.role=="superuser" and u.nombre|lower != 'david' %}
               <form class="inline-form" action="/usuario/{{ u.nombre }}/eliminar" method="POST" onsubmit="return confirm('Eliminar usuario {{u.nombre}}?');">
                 <button class="btn danger" type="submit">🗑 Eliminar</button>
               </form>

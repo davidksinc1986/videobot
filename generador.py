@@ -1199,7 +1199,7 @@ def _download_pexels_video(query, api_key, out_path):
         return False
 
 
-def _download_pixabay_video(query, out_path):
+def _download_pixabay_video(query, out_path, api_key=None):
     """
     Pixabay videos NO soporta orientation=vertical.
     Elegimos el mejor candidato:
@@ -1208,7 +1208,7 @@ def _download_pixabay_video(query, out_path):
     """
     url = "https://pixabay.com/api/videos/"
     params = {
-        "key": PIXABAY_API_KEY,
+        "key": (api_key or PIXABAY_API_KEY),
         "q": query,
         "safesearch": "true",
         "per_page": 50,
@@ -1269,17 +1269,131 @@ def _download_pixabay_video(query, out_path):
         return False
 
 
+
+def _get_pixabay_key(user):
+    cred = user.get("credenciales", {}) or {}
+    return (cred.get("pixabay_api_key") or PIXABAY_API_KEY).strip()
+
+
+def _read_lines_file(path: str) -> list[str]:
+    if not path:
+        return []
+    if not os.path.exists(path) or not os.path.isfile(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return [ln.strip() for ln in f.readlines() if ln.strip() and not ln.strip().startswith("#")]
+    except Exception:
+        return []
+
+
+def _script_from_nicho_library(user: dict, nicho_key: str, seconds: int) -> str:
+    lines = _read_lines_file(os.path.join("nichos", f"{nicho_key}.txt"))
+    if not lines:
+        return ""
+
+    hook = (user.get("hook_final") or "Suscríbete para más").strip()
+    # evitamos frases sueltas random: armamos intro + desarrollo + cierre
+    take = min(4, max(2, int(seconds / 12)))
+    picked = random.sample(lines, k=take) if len(lines) >= take else lines
+
+    intro = f"En {nicho_key.replace('_', ' ')} recuerda esto:"
+    body = " ".join(picked[:3])
+    closing = picked[-1] if len(picked) > 1 else "Aplica esto hoy mismo."
+    return f"{intro} {body} {closing} {hook}".strip()
+
+
+def _resolve_script_text(user: dict, nicho_key: str, tema: str, seconds: int, estilo: str) -> str:
+    source = (user.get("content_source") or "ai").strip().lower()
+    requested_file = (user.get("content_file_path") or "").strip()
+
+    if source == "file":
+        if requested_file:
+            lines = _read_lines_file(requested_file)
+            if lines:
+                hook = (user.get("hook_final") or "Suscríbete para más").strip()
+                take = min(4, max(2, int(seconds / 12)))
+                picked = random.sample(lines, k=take) if len(lines) >= take else lines
+                return (" ".join(picked) + f" {hook}").strip()
+
+        # si no proporciona textos o el archivo viene vacío, caer a nicho por defecto
+        fallback_nicho_text = _script_from_nicho_library(user, nicho_key, seconds)
+        if fallback_nicho_text:
+            return fallback_nicho_text
+
+        print("⚠️ content_source=file sin textos válidos; usando generador IA local")
+
+    provider = (user.get("script_provider") or "local").strip().lower()
+    if provider == "openai":
+        cred = user.get("credenciales", {}) or {}
+        api_key = (cred.get("openai_api_key") or "").strip()
+        if api_key:
+            try:
+                prompt = f"Crea un guion corto de {seconds} segundos en idioma {user.get('idioma','es')} sobre {tema} con estilo {estilo}."
+                r = requests.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": [
+                            {"role": "system", "content": "Eres un guionista para shorts verticales de marketing. Escribe en tono humano y coherente."},
+                            {"role": "user", "content": prompt},
+                        ],
+                        "temperature": 0.8,
+                    },
+                    timeout=40,
+                )
+                r.raise_for_status()
+                data = r.json()
+                text = (((data.get("choices") or [{}])[0].get("message") or {}).get("content") or "").strip()
+                if text:
+                    return text
+            except Exception as e:
+                print(f"⚠️ OpenAI script provider falló: {e}")
+
+    # fallback coherente por nicho antes del generador aleatorio
+    niche_text = _script_from_nicho_library(user, nicho_key, seconds)
+    if niche_text:
+        return niche_text
+
+    return _build_script(user, nicho_key, tema, seconds, estilo)
+
+
+def _provider_order(user: dict, kind: str) -> list[str]:
+    setting_key = "voice_provider" if kind == "voice" else "video_provider"
+    selected = (user.get(setting_key) or "auto").strip().lower()
+    if kind == "voice":
+        default = ["elevenlabs", "gtts"]
+    else:
+        default = ["pexels", "pixabay", "fallback"]
+
+    if selected == "auto":
+        return default
+    if selected in default:
+        return [selected] + [x for x in default if x != selected]
+    return default
+
+
 def _generate_tts(user: dict, texto: str, out_mp3: str) -> None:
     cred = user.get("credenciales", {}) or {}
-    eleven_key = (cred.get("elevenlabs_api_key") or "").strip()
-    eleven_voice = (cred.get("eleven_voice_id") or "").strip()
+    providers = _provider_order(user, "voice")
 
-    if eleven_key and eleven_voice:
+    for provider in providers:
         try:
-            generar_audio(texto, out_mp3, api_key=eleven_key, voice_id=eleven_voice)
-            return
+            if provider == "elevenlabs":
+                eleven_key = (cred.get("elevenlabs_api_key") or "").strip()
+                eleven_voice = (cred.get("eleven_voice_id") or "").strip()
+                if eleven_key and eleven_voice:
+                    generar_audio(texto, out_mp3, api_key=eleven_key, voice_id=eleven_voice)
+                    return
+            elif provider == "gtts":
+                tts = gTTS(text=texto, lang=_gtts_lang(user.get("idioma", "es")))
+                tts.save(out_mp3)
+                return
         except QuotaExceededError:
-            print("⚠️ ElevenLabs quota exceeded, falling back to gTTS")
+            print("⚠️ ElevenLabs quota exceeded, probando siguiente proveedor...")
+        except Exception as e:
+            print(f"⚠️ Voz provider {provider} falló: {e}")
 
     tts = gTTS(text=texto, lang=_gtts_lang(user.get("idioma", "es")))
     tts.save(out_mp3)
@@ -1315,6 +1429,24 @@ def _force_vertical_9_16(clip):
         return clip.crop(x1=0, y1=y1, x2=w, y2=y2)
 
     return clip
+
+
+
+def _avatar_overlay_clip(user: dict, duration: float):
+    mode = (user.get("avatar_mode") or "none").strip().lower()
+    path = (user.get("avatar_image_path") or "").strip()
+    if mode not in ("photo", "ai_sketch"):
+        return None
+    if not path or not os.path.exists(path):
+        return None
+    try:
+        clip = ImageClip(path).set_duration(duration)
+        clip = clip.resize(height=740).set_position(("center", "center"))
+        opacity = 0.80 if mode == "photo" else 0.45
+        return clip.set_opacity(opacity)
+    except Exception as e:
+        print(f"⚠️ No se pudo aplicar avatar overlay: {e}")
+        return None
 
 
 # ============================
@@ -1359,8 +1491,7 @@ def generar_video_usuario(user: dict) -> str:
 
         print(f"🔎 Intentando descargar video para tema: {tema}")
 
-        sources = ["pexels", "pixabay"]
-        random.shuffle(sources)
+        sources = _provider_order(user, "video")
 
         ok = False
         for source in sources:
@@ -1373,9 +1504,11 @@ def generar_video_usuario(user: dict) -> str:
             if source == "pexels":
                 print("🎬 Intentando desde Pexels...")
                 ok = _download_pexels_video(tema, _get_pexels_key(user), temp_video)
-            else:
+            elif source == "pixabay":
                 print("🎬 Intentando desde Pixabay...")
-                ok = _download_pixabay_video(tema, temp_video)
+                ok = _download_pixabay_video(tema, temp_video, _get_pixabay_key(user))
+            elif source == "fallback":
+                ok = False
 
             if ok and os.path.exists(temp_video) and os.path.getsize(temp_video) > 1000:
                 descargado = True
@@ -1393,7 +1526,7 @@ def generar_video_usuario(user: dict) -> str:
         fallback_clip.close()
 
     # 4) Audio (ahora largo y variado)
-    texto = _build_script(user, nicho_key, tema or nicho_key, target_dur, estilo)
+    texto = _resolve_script_text(user, nicho_key, tema or nicho_key, target_dur, estilo)
     _generate_tts(user, texto, temp_audio)
 
     if not os.path.exists(temp_audio) or os.path.getsize(temp_audio) < 200:
@@ -1420,6 +1553,9 @@ def generar_video_usuario(user: dict) -> str:
 
             dur_final = max(0.1, final_audio.duration - AUDIO_EPSILON)
             video_final = final_clip.set_audio(final_audio).set_duration(dur_final)
+            avatar = _avatar_overlay_clip(user, dur_final)
+            if avatar is not None:
+                video_final = CompositeVideoClip([video_final, avatar]).set_duration(dur_final).set_audio(final_audio)
 
             video_final.write_videofile(
                 out_video,
