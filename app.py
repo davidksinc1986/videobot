@@ -7,8 +7,10 @@ import shutil
 import subprocess
 import unicodedata
 from datetime import datetime
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
-from flask import Flask, render_template, request, redirect, jsonify, abort, make_response
+from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session
 
 from config import USUARIOS_DIR, TEMP_DIR, VIDEOS_DIR, APP_PORT
 from generador import generar_video_usuario, NICHOS as NICHOS_DICT
@@ -29,6 +31,7 @@ SESSIONS_DIR = os.path.join(BASE_DIR, "sessions")
 os.makedirs(SESSIONS_DIR, exist_ok=True)
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+app.secret_key = os.getenv("APP_SECRET_KEY", "change-me-in-production")
 
 
 # ----------------------------
@@ -43,6 +46,20 @@ TRANSLATIONS = {
         "language": "Idioma",
         "spanish": "Español",
         "english": "English",
+        "portuguese": "Português",
+        "switch_to_pt": "PT",
+        "switch_to_es": "ES",
+        "switch_to_en": "EN",
+        "login": "Login",
+        "logout": "Logout",
+        "email": "Email",
+        "password": "Password",
+        "superuser": "Superuser",
+        "login": "Iniciar sesión",
+        "logout": "Salir",
+        "email": "Correo",
+        "password": "Contraseña",
+        "superuser": "Superusuario",
 
         "create_user": "Crear usuario",
         "name_id": "Nombre (id)",
@@ -80,6 +97,16 @@ TRANSLATIONS = {
         "pexels_key": "Pexels API key",
         "eleven_key": "ElevenLabs API key",
         "eleven_voice": "ID de Voz ElevenLabs",
+        "content_source": "Fuente de guion",
+        "content_ai": "IA generada",
+        "content_file": "Archivo de textos",
+        "content_file_path": "Ruta de archivo de textos",
+        "content_file_help": "Ejemplo: nichos/motivacion.txt (1 idea por línea)",
+        "voice_provider": "Proveedor de voz",
+        "video_provider": "Proveedor de video",
+        "script_provider": "Proveedor de guion IA",
+        "openai_key": "OpenAI API key",
+        "pixabay_key": "Pixabay API key (opcional)",
 
         "platforms": "Plataformas (Activar + Método)",
         "active": "Activo",
@@ -140,6 +167,15 @@ TRANSLATIONS = {
         "language": "Language",
         "spanish": "Español",
         "english": "English",
+        "portuguese": "Português",
+        "switch_to_pt": "PT",
+        "switch_to_es": "ES",
+        "switch_to_en": "EN",
+        "login": "Iniciar sesión",
+        "logout": "Salir",
+        "email": "Correo",
+        "password": "Contraseña",
+        "superuser": "Superusuario",
 
         "create_user": "Create user",
         "name_id": "Name (id)",
@@ -177,6 +213,16 @@ TRANSLATIONS = {
         "pexels_key": "Pexels API key",
         "eleven_key": "ElevenLabs API key",
         "eleven_voice": "ElevenLabs Voice ID",
+        "content_source": "Script source",
+        "content_ai": "AI generated",
+        "content_file": "Text file",
+        "content_file_path": "Text file path",
+        "content_file_help": "Example: nichos/motivacion.txt (1 idea per line)",
+        "voice_provider": "Voice provider",
+        "video_provider": "Video provider",
+        "script_provider": "AI script provider",
+        "openai_key": "OpenAI API key",
+        "pixabay_key": "Pixabay API key (optional)",
 
         "platforms": "Platforms (Enable + Method)",
         "active": "Active",
@@ -232,13 +278,47 @@ TRANSLATIONS = {
     }
 }
 
+PT_OVERRIDES = {
+    "app_title": "Video-Bot • SaaS",
+    "admin_panel": "Painel admin",
+    "monitor": "Monitoramento",
+    "create_user": "Criar usuário",
+    "name_id": "Nome (id)",
+    "niche": "Nicho",
+    "user_language": "Idioma",
+    "quick_actions": "Ações rápidas",
+    "users": "Usuários",
+    "edit": "Editar",
+    "generate": "Gerar",
+    "delete": "Excluir",
+    "save": "Salvar alterações",
+    "back": "Voltar",
+    "status": "Status",
+    "language": "Idioma",
+    "spanish": "Español",
+    "english": "English",
+    "portuguese": "Português",
+    "login": "Entrar",
+    "logout": "Sair",
+    "email": "Email",
+    "password": "Senha",
+    "content_source": "Fonte de roteiro",
+    "content_ai": "IA gerada",
+    "content_file": "Arquivo de textos",
+    "content_file_path": "Caminho do arquivo",
+    "voice_provider": "Provedor de voz",
+    "video_provider": "Provedor de vídeo",
+    "script_provider": "Provedor de roteiro IA",
+}
+TRANSLATIONS["pt"] = {**TRANSLATIONS["en"], **PT_OVERRIDES}
+
 
 def get_lang() -> str:
     q = (request.args.get("lang") or "").strip().lower()
-    if q in ("es", "en"):
+    if q in ("es", "en", "pt"):
         return q
     c = (request.cookies.get("lang") or "").strip().lower()
-    if c in ("es", "en"):
+    if c in ("es", "en", "pt"):
         return c
     return "es"
 
@@ -251,7 +331,7 @@ def tr() -> dict:
 @app.route("/set-lang/<lang>")
 def set_lang(lang):
     lang = (lang or "").strip().lower()
-    if lang not in ("es", "en"):
+    if lang not in ("es", "en", "pt"):
         lang = "es"
 
     next_url = request.args.get("next") or "/"
@@ -259,6 +339,100 @@ def set_lang(lang):
     resp.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="Lax")
     return resp
 
+
+
+# ----------------------------
+# Auth / Roles
+# ----------------------------
+
+def _superuser_config() -> dict:
+    email = (os.getenv("SUPERUSER_EMAIL") or "davidksinc").strip().lower()
+    pwd = os.getenv("SUPERUSER_PASSWORD") or "M@davi19!"
+    return {"email": email, "password": pwd}
+
+
+def current_auth() -> dict:
+    role = (session.get("role") or "").strip()
+    if role == "superuser":
+        return {"role": "superuser", "email": session.get("email", "")}
+    if role == "tenant":
+        return {"role": "tenant", "email": session.get("email", ""), "user": session.get("user", "")}
+    return {"role": "anon"}
+
+
+def login_required(fn):
+    @wraps(fn)
+    def _w(*args, **kwargs):
+        if current_auth().get("role") == "anon":
+            return redirect("/login")
+        return fn(*args, **kwargs)
+    return _w
+
+
+def superuser_required(fn):
+    @wraps(fn)
+    def _w(*args, **kwargs):
+        if current_auth().get("role") != "superuser":
+            abort(403, "Solo superusuario")
+        return fn(*args, **kwargs)
+    return _w
+
+
+def can_access_user(nombre: str) -> bool:
+    auth = current_auth()
+    if auth.get("role") == "superuser":
+        return True
+    return auth.get("role") == "tenant" and _safe_name(auth.get("user", "")) == _safe_name(nombre)
+
+
+def _coerce_email(email: str) -> str:
+    return (email or "").strip().lower()
+
+
+def _pick_allowed(value: str, allowed: list[str], default: str) -> str:
+    v = (value or "").strip().lower()
+    return v if v in allowed else default
+
+
+def _find_user_by_email(email: str):
+    email = _coerce_email(email)
+    if not email:
+        return None
+    for u in list_users():
+        if _coerce_email(u.get("email", "")) == email:
+            return ensure_defaults(u)
+    return None
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html", lang=get_lang(), t=tr(), error="")
+
+    email = _coerce_email(request.form.get("email", ""))
+    password = request.form.get("password", "")
+
+    su = _superuser_config()
+    if email == su["email"] and password == su["password"]:
+        session["role"] = "superuser"
+        session["email"] = email
+        session.pop("user", None)
+        return redirect("/")
+
+    user = _find_user_by_email(email)
+    if user and (user.get("password_hash") or "") and check_password_hash(user.get("password_hash"), password):
+        session["role"] = "tenant"
+        session["email"] = email
+        session["user"] = user.get("nombre", "")
+        return redirect(f"/usuario/{user.get('nombre','')}")
+
+    return render_template("login.html", lang=get_lang(), t=tr(), error="Credenciales inválidas")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
 
 # ----------------------------
 # Helpers
@@ -300,8 +474,13 @@ def load_user(nombre: str) -> dict:
 
 
 def save_user(user: dict) -> None:
-    with open(user_path(user["nombre"]), "w", encoding="utf-8") as f:
+    up = user_path(user["nombre"])
+    with open(up, "w", encoding="utf-8") as f:
         json.dump(user, f, ensure_ascii=False, indent=2)
+    try:
+        os.chmod(up, 0o600)
+    except Exception:
+        pass
 
 
 def list_users() -> list:
@@ -452,6 +631,16 @@ def ensure_defaults(user: dict) -> dict:
         "idioma": "es",
         "nicho": valid_nichos[0] if valid_nichos else "motivacion",
         "hook_final": "Suscríbete para más 🔥",
+        "content_source": "ai",
+        "content_file_path": "",
+        "voice_provider": "gtts",
+        "video_provider": "pixabay",
+        "script_provider": "local",
+        "email": "",
+        "password_hash": "",
+        "avatar_mode": "none",
+        "avatar_prompt": "",
+        "avatar_image_path": "",
 
         "youtube_activo": True,
         "tiktok_activo": False,
@@ -478,8 +667,10 @@ def ensure_defaults(user: dict) -> dict:
 
         "credenciales": {
             "pexels_api_key": "",
+            "pixabay_api_key": "",
             "elevenlabs_api_key": "",
             "eleven_voice_id": "",
+            "openai_api_key": "",
 
             "tiktok_client_key": "",
             "tiktok_client_secret": "",
@@ -500,6 +691,17 @@ def ensure_defaults(user: dict) -> dict:
         if k not in user:
             user[k] = v
             changed = True
+
+    cred_defaults = defaults["credenciales"]
+    cred = user.get("credenciales")
+    if not isinstance(cred, dict):
+        user["credenciales"] = dict(cred_defaults)
+        changed = True
+    else:
+        for ck, cv in cred_defaults.items():
+            if ck not in cred:
+                cred[ck] = cv
+                changed = True
 
     # ✅ FIX NICHO (no reventar selección por mayúsculas/espacios/tildes)
     current = user.get("nicho", "")
@@ -798,7 +1000,10 @@ def run_job_for_user(nombre: str) -> None:
 # ----------------------------
 
 @app.route("/usuario/<nombre>/reset/<plataforma>", methods=["POST"])
+@login_required
 def usuario_reset(nombre, plataforma):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
     nombre = _safe_name(nombre)
     plataforma = _safe_name(plataforma)
 
@@ -852,9 +1057,13 @@ def health():
 
 
 @app.route("/")
+@login_required
 def home():
     lang = get_lang()
+    auth = current_auth()
     usuarios = [ensure_defaults(u) for u in list_users()]
+    if auth.get("role") == "tenant":
+        usuarios = [u for u in usuarios if _safe_name(u.get("nombre","")) == _safe_name(auth.get("user",""))]
     nichos = list_nichos()
 
     return render_template(
@@ -862,11 +1071,14 @@ def home():
         usuarios=usuarios,
         nichos=nichos,
         lang=lang,
-        t=tr()
+        t=tr(),
+        auth=auth
     )
 
 
 @app.route("/monitor")
+@login_required
+@superuser_required
 def monitor():
     lang = get_lang()
     usuarios = [ensure_defaults(u) for u in list_users()]
@@ -888,6 +1100,8 @@ def monitor():
 
 
 @app.route("/crear", methods=["POST"])
+@login_required
+@superuser_required
 def crear():
     nombre = _safe_name(request.form.get("nombre", "").strip())
     idioma = request.form.get("idioma", "es").strip().lower()
@@ -899,10 +1113,22 @@ def crear():
     if not nombre:
         return redirect("/")
 
+    email_login = _coerce_email(request.form.get("email", ""))
+    raw_pw = request.form.get("password", "").strip()
+    if not email_login or not raw_pw:
+        abort(400, "Debes definir correo y contraseña para el usuario")
+
     user = ensure_defaults({
         "nombre": nombre,
         "nicho": nicho,
         "idioma": idioma if idioma in ("es", "en", "pt") else "es",
+        "content_source": _pick_allowed(request.form.get("content_source", "ai"), ["ai", "file"], "ai"),
+        "content_file_path": request.form.get("content_file_path", "").strip(),
+        "voice_provider": _pick_allowed(request.form.get("voice_provider", "gtts"), ["auto", "elevenlabs", "gtts"], "gtts"),
+        "video_provider": _pick_allowed(request.form.get("video_provider", "pixabay"), ["auto", "pexels", "pixabay", "fallback"], "pixabay"),
+        "script_provider": _pick_allowed(request.form.get("script_provider", "local"), ["local", "openai"], "local"),
+        "email": email_login,
+        "password_hash": generate_password_hash(raw_pw),
     })
 
     if not os.path.exists(user_path(nombre)):
@@ -912,7 +1138,10 @@ def crear():
 
 
 @app.route("/generar/<nombre>")
+@login_required
 def generar(nombre):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
     if not os.path.exists(user_path(nombre)):
         abort(404, f"Usuario no existe: {nombre}")
 
@@ -922,7 +1151,10 @@ def generar(nombre):
 
 
 @app.route("/usuario/<nombre>")
+@login_required
 def usuario(nombre):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
     lang = get_lang()
 
     try:
@@ -939,12 +1171,18 @@ def usuario(nombre):
         user=user,
         nichos=nichos,
         lang=lang,
-        t=tr()
+        t=tr(),
+        auth=current_auth()
     )
 
 
 @app.route("/usuario/<nombre>/guardar", methods=["POST"])
+@login_required
 def usuario_guardar(nombre):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    auth = current_auth()
+    is_super = auth.get("role") == "superuser"
     user = ensure_defaults(load_user(nombre))
 
     valid_nichos = list_nichos()
@@ -955,6 +1193,17 @@ def usuario_guardar(nombre):
     user["idioma"] = idioma if idioma in ("es", "en", "pt") else "es"
 
     user["hook_final"] = request.form.get("hook_final", user.get("hook_final", "Suscríbete para más 🔥")).strip()
+    user["content_source"] = _pick_allowed(request.form.get("content_source", user.get("content_source", "ai")), ["ai", "file"], "ai")
+    user["content_file_path"] = request.form.get("content_file_path", user.get("content_file_path", "")).strip()
+    user["voice_provider"] = _pick_allowed(request.form.get("voice_provider", user.get("voice_provider", "gtts")), ["auto", "elevenlabs", "gtts"], "gtts")
+    user["video_provider"] = _pick_allowed(request.form.get("video_provider", user.get("video_provider", "pixabay")), ["auto", "pexels", "pixabay", "fallback"], "pixabay")
+    user["script_provider"] = _pick_allowed(request.form.get("script_provider", user.get("script_provider", "local")), ["local", "openai"], "local")
+    user["email"] = _coerce_email(request.form.get("email", user.get("email", "")))
+    new_pw = request.form.get("password", "").strip()
+    if new_pw:
+        user["password_hash"] = generate_password_hash(new_pw)
+    user["avatar_mode"] = request.form.get("avatar_mode", user.get("avatar_mode", "none")).strip().lower()
+    user["avatar_prompt"] = request.form.get("avatar_prompt", user.get("avatar_prompt", "")).strip()
 
     def _int(name, default):
         try:
@@ -971,28 +1220,32 @@ def usuario_guardar(nombre):
     user["activo_scheduler"] = bool(request.form.get("activo_scheduler"))
     user["continuar_si_falla"] = bool(request.form.get("continuar_si_falla"))
 
-    user["youtube_activo"] = bool(request.form.get("youtube_activo"))
-    user["tiktok_activo"] = bool(request.form.get("tiktok_activo"))
-    user["instagram_activo"] = bool(request.form.get("instagram_activo"))
-    user["facebook_activo"] = bool(request.form.get("facebook_activo"))
+    if is_super:
+        user["youtube_activo"] = bool(request.form.get("youtube_activo"))
+        user["tiktok_activo"] = bool(request.form.get("tiktok_activo"))
+        user["instagram_activo"] = bool(request.form.get("instagram_activo"))
+        user["facebook_activo"] = bool(request.form.get("facebook_activo"))
 
-    if is_admin_legacy_user(user):
-        user["youtube_auth_method"] = "legacy"
-    else:
-        user["youtube_auth_method"] = request.form.get(
-            "youtube_auth_method",
-            user.get("youtube_auth_method", "token_upload")
-        ).strip()
+    if is_super:
+        if is_admin_legacy_user(user):
+            user["youtube_auth_method"] = "legacy"
+        else:
+            user["youtube_auth_method"] = request.form.get(
+                "youtube_auth_method",
+                user.get("youtube_auth_method", "token_upload")
+            ).strip()
 
-    user["youtube_backend"] = request.form.get("youtube_backend", user.get("youtube_backend", "api")).strip()
-    user["tiktok_backend"] = request.form.get("tiktok_backend", user.get("tiktok_backend", "playwright")).strip()
-    user["instagram_backend"] = request.form.get("instagram_backend", user.get("instagram_backend", "playwright")).strip()
-    user["facebook_backend"] = request.form.get("facebook_backend", user.get("facebook_backend", "playwright")).strip()
+        user["youtube_backend"] = request.form.get("youtube_backend", user.get("youtube_backend", "api")).strip()
+        user["tiktok_backend"] = request.form.get("tiktok_backend", user.get("tiktok_backend", "playwright")).strip()
+        user["instagram_backend"] = request.form.get("instagram_backend", user.get("instagram_backend", "playwright")).strip()
+        user["facebook_backend"] = request.form.get("facebook_backend", user.get("facebook_backend", "playwright")).strip()
 
     cred = user.get("credenciales", {}) or {}
     cred["pexels_api_key"] = request.form.get("pexels_api_key", cred.get("pexels_api_key", "")).strip()
+    cred["pixabay_api_key"] = request.form.get("pixabay_api_key", cred.get("pixabay_api_key", "")).strip()
     cred["elevenlabs_api_key"] = request.form.get("elevenlabs_api_key", cred.get("elevenlabs_api_key", "")).strip()
     cred["eleven_voice_id"] = request.form.get("eleven_voice_id", cred.get("eleven_voice_id", "")).strip()
+    cred["openai_api_key"] = request.form.get("openai_api_key", cred.get("openai_api_key", "")).strip()
 
     cred["tiktok_client_key"] = request.form.get("tiktok_client_key", cred.get("tiktok_client_key", "")).strip()
     cred["tiktok_client_secret"] = request.form.get("tiktok_client_secret", cred.get("tiktok_client_secret", "")).strip()
@@ -1013,6 +1266,8 @@ def usuario_guardar(nombre):
 
 
 @app.route("/usuario/<nombre>/eliminar", methods=["POST"])
+@login_required
+@superuser_required
 def usuario_eliminar(nombre):
     nombre = _safe_name(nombre)
     try:
@@ -1045,7 +1300,10 @@ def usuario_eliminar(nombre):
 
 
 @app.route("/usuario/<nombre>/upload/<plataforma>", methods=["POST"])
+@login_required
 def usuario_upload_archivo(nombre, plataforma):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
     nombre = _safe_name(nombre)
     plataforma = _safe_name(plataforma)
 
@@ -1062,6 +1320,10 @@ def usuario_upload_archivo(nombre, plataforma):
 
     try:
         f.save(dest_path)
+        try:
+            os.chmod(dest_path, 0o600)
+        except Exception:
+            pass
     except Exception as e:
         abort(500, f"No se pudo guardar archivo: {e}")
 
@@ -1082,7 +1344,10 @@ def usuario_upload_archivo(nombre, plataforma):
 
 
 @app.route("/usuario/<nombre>/login/<plataforma>", methods=["POST"])
+@login_required
 def usuario_login(nombre, plataforma):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
     nombre = _safe_name(nombre)
     plataforma = _safe_name(plataforma)
 
@@ -1092,9 +1357,13 @@ def usuario_login(nombre, plataforma):
     if not os.path.exists(user_path(nombre)):
         abort(404, f"Usuario no existe: {nombre}")
 
-    script = os.path.join(BASE_DIR, "social_login.py")
+    user_cfg = ensure_defaults(load_user(nombre))
+    backend_key = f"{plataforma}_backend"
+    backend = (user_cfg.get(backend_key) or "playwright").strip().lower()
+    script_name = "social_login_selenium.py" if backend == "selenium" else "social_login.py"
+    script = os.path.join(BASE_DIR, script_name)
     if not os.path.exists(script):
-        abort(500, "Falta social_login.py")
+        abort(500, f"Falta {script_name}")
 
     try:
         subprocess.Popen(
@@ -1114,24 +1383,71 @@ def usuario_login(nombre, plataforma):
     return redirect(f"/usuario/{nombre}")
 
 
+
+
+@app.route("/usuario/<nombre>/foto", methods=["POST"])
+@login_required
+def usuario_subir_foto(nombre):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    if not os.path.exists(user_path(nombre)):
+        abort(404, f"Usuario no existe: {nombre}")
+
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return redirect(f"/usuario/{nombre}")
+
+    ext = os.path.splitext(f.filename)[1].lower()
+    if ext not in (".png", ".jpg", ".jpeg", ".webp"):
+        abort(400, "Formato inválido. Usa png/jpg/jpeg/webp")
+
+    dest_dir = platform_dir(nombre, "profile")
+    dest_path = os.path.join(dest_dir, f"avatar{ext}")
+    f.save(dest_path)
+    try:
+        os.chmod(dest_path, 0o600)
+    except Exception:
+        pass
+
+    user = ensure_defaults(load_user(nombre))
+    user["avatar_image_path"] = dest_path
+    _append_event(user, "profile_photo", "Foto de perfil subida", {"file": dest_path})
+    save_user(user)
+    return redirect(f"/usuario/{nombre}")
 @app.route("/admin/limpiar/videos", methods=["POST"])
+@login_required
+@superuser_required
 def admin_limpiar_videos():
     clear_videos_dir()
     return redirect("/")
 
 
 @app.route("/admin/limpiar/temp", methods=["POST"])
+@login_required
+@superuser_required
 def admin_limpiar_temp():
     clear_temp_audio()
     return redirect("/")
 
 
 @app.route("/api/usuarios")
+@login_required
+@superuser_required
 def api_usuarios():
+    auth = current_auth()
     usuarios = [ensure_defaults(u) for u in list_users()]
+    if auth.get("role") == "tenant":
+        usuarios = [u for u in usuarios if _safe_name(u.get("nombre","")) == _safe_name(auth.get("user",""))]
     for u in usuarios:
         u["locked"] = is_locked(u["nombre"])
         u["_is_david_legacy"] = is_admin_legacy_user(u)
+        u.pop("password_hash", None)
+        cred = u.get("credenciales") or {}
+        if isinstance(cred, dict):
+            for k in list(cred.keys()):
+                if "key" in k or "secret" in k or "token" in k:
+                    cred[k] = "***" if cred.get(k) else ""
     return jsonify(usuarios)
 
 
