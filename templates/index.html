@@ -43,7 +43,7 @@
       {% if auth.role=="superuser" %}
       <div class="card create-user-card glass">
         <h2>{{ t.create_user }}</h2>
-        <form action="/crear" method="POST">
+        <form action="/crear" method="POST" enctype="multipart/form-data">
           <div class="form-row-group">
             <div class="form-field">
               <label>Nombre o I</label>
@@ -98,8 +98,8 @@
             </div>
 
             <div class="form-field">
-              <label>Archivo (opcional)</label>
-              <input class="input" name="content_file_path" placeholder="nichos/motivacion.txt"/>
+              <label>Archivo base (opcional)</label>
+              <input class="input" type="file" name="content_file" accept=".txt,.md,.csv"/>
             </div>
 
             <div class="form-field">
@@ -142,7 +142,6 @@
           <div class="action-button-row">
             <button class="btn blue" type="submit">➕ {{ t.create }}</button>
           </div>
-          <div class="action-button-row"><button class="btn blue" type="submit">➕ {{ t.create }}</button></div>
         </form>
       </div>
 
