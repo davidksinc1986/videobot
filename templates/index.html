@@ -64,6 +64,25 @@
             </div>
 
             <div class="form-field">
+              <label>Tenant ID</label>
+              <input class="input" name="tenant_id" placeholder="acme" value="default"/>
+            </div>
+
+            <div class="form-field">
+              <label>Plan</label>
+              <select name="plan">
+                <option value="starter" selected>starter (YouTube)</option>
+                <option value="growth">growth (YouTube + TikTok + Instagram)</option>
+                <option value="scale">scale (todas las redes)</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Duración objetivo (20-45s)</label>
+              <input class="input" type="number" min="20" max="45" name="target_seconds" value="30"/>
+            </div>
+
+            <div class="form-field">
               <label>Fuente</label>
               <select name="content_source">
                 <option value="ai" selected>IA</option>
@@ -154,6 +173,7 @@
         <div class="table">
           <div class="thead">
             <div>Usuario</div>
+            <div>Tenant / Plan</div>
             <div>Nicho</div>
             <div>Estado</div>
             <div>Último video</div>
@@ -176,6 +196,7 @@
               {% endif %}
             </div>
 
+            <div class="small">{{ u.tenant_id }} / {{ u.plan }}</div>
             <div class="user-niche">{{ u.nicho }}</div>
             <div class="user-status">
               <span class="badge"><span class="dot"></span> {{ u.estado }}</span>
