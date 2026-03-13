@@ -51,7 +51,7 @@
 
           <div class="tab-panel active" id="tab-perfil">
             <div class="form-row-group">
-              <div class="form-field"><label>{{ t.niche }}</label><select name="nicho">{% for k in nichos %}<option value="{{ k }}" {% if user.nicho == k %}selected{% endif %}>{{ k.replace('_', ' ').title() }}</option>{% endfor %}</select></div>
+              <div class="form-field"><label>{{ t.niche }}</label><select name="nicho">{% for k in nichos %}<option value="{{ k }}" {% if user.nicho == k %}selected{% endif %}>{{ niche_label(k, lang) }}</option>{% endfor %}</select></div>
               <div class="form-field"><label>{{ t.user_language }}</label><select name="idioma"><option value="es" {% if user.idioma=='es' %}selected{% endif %}>es</option><option value="en" {% if user.idioma=='en' %}selected{% endif %}>en</option><option value="pt" {% if user.idioma=='pt' %}selected{% endif %}>pt</option></select></div>
               <div class="form-field"><label>{{ t.interval_min }}</label><input class="input" name="intervalo_minutos" value="{{ user.intervalo_minutos }}" /></div>
               <div class="form-field"><label>{{ t.max_per_day }}</label><input class="input" name="max_videos_dia" value="{{ user.max_videos_dia }}" /></div>

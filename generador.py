@@ -386,6 +386,69 @@ NICHOS = {
         }
     },
 
+    "haircare": {
+        "color": (110, 180, 255),
+        "subcategorias": {
+            "rutinas": {"temas_video": ["hair routine", "healthy scalp", "wash day"], "estilo": "educativo"},
+            "tratamientos": {"temas_video": ["hair mask", "deep conditioning", "repair"], "estilo": "practico"},
+            "crecimiento": {"temas_video": ["hair growth", "length retention", "hair vitamins"], "estilo": "inspirador"}
+        }
+    },
+
+    "hairstyle": {
+        "color": (255, 140, 210),
+        "subcategorias": {
+            "pelo_corto": {"temas_video": ["short hair style", "bob hair", "pixie cut"], "estilo": "visual"},
+            "pelo_largo": {"temas_video": ["long hair style", "waves", "ponytail"], "estilo": "aspiracional"},
+            "trenzas": {"temas_video": ["braids tutorial", "protective style", "updo"], "estilo": "practico"}
+        }
+    },
+
+    "maquillaje_social": {
+        "color": (255, 120, 180),
+        "subcategorias": {
+            "dia": {"temas_video": ["soft glam", "natural makeup", "daily makeup"], "estilo": "educativo"},
+            "noche": {"temas_video": ["night makeup", "party makeup", "smokey eyes"], "estilo": "aspiracional"},
+            "piel_madura": {"temas_video": ["mature skin makeup", "lifting makeup"], "estilo": "practico"}
+        }
+    },
+
+    "maquillaje_novias": {
+        "color": (255, 210, 220),
+        "subcategorias": {
+            "clasico": {"temas_video": ["bridal look", "timeless bride makeup"], "estilo": "elegante"},
+            "glam": {"temas_video": ["full glam bride", "luxury bridal makeup"], "estilo": "aspiracional"},
+            "piel_morena": {"temas_video": ["bridal makeup brown skin", "golden bridal look"], "estilo": "visual"}
+        }
+    },
+
+    "maquillaje_editorial": {
+        "color": (170, 120, 255),
+        "subcategorias": {
+            "fashion": {"temas_video": ["fashion makeup", "editorial beauty", "catwalk makeup"], "estilo": "artistico"},
+            "fantasia": {"temas_video": ["creative makeup", "fantasy makeup", "avant garde makeup"], "estilo": "experimental"},
+            "efectos": {"temas_video": ["special effects makeup", "sfx tutorial"], "estilo": "impactante"}
+        }
+    },
+
+    "unas": {
+        "color": (255, 90, 160),
+        "subcategorias": {
+            "gel": {"temas_video": ["gel nails", "builder gel", "nail refill"], "estilo": "practico"},
+            "acrilicas": {"temas_video": ["acrylic nails", "nail extension"], "estilo": "visual"},
+            "disenos": {"temas_video": ["nail art", "minimal nails", "french nails"], "estilo": "artistico"}
+        }
+    },
+
+    "skincare": {
+        "color": (120, 220, 210),
+        "subcategorias": {
+            "acne": {"temas_video": ["acne skincare", "blemish routine"], "estilo": "educativo"},
+            "antiage": {"temas_video": ["anti aging skincare", "retinol routine"], "estilo": "practico"},
+            "hidratacion": {"temas_video": ["hydration skincare", "glass skin routine"], "estilo": "calmado"}
+        }
+    },
+
     "product_reviews": {
         "color": (255, 150, 50),
         "subcategorias": {

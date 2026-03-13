@@ -61,7 +61,7 @@ app.secret_key = os.getenv("APP_SECRET_KEY", "change-me-in-production")
 
 TRANSLATIONS = {
     "es": {
-        "app_title": "Video-Bot • SaaS",
+        "app_title": "Media by Snake Mafia",
         "admin_panel": "Panel admin",
         "monitor": "Monitoreo",
         "language": "Idioma",
@@ -227,7 +227,7 @@ TRANSLATIONS = {
         "confirm_add_version": "Ya hay archivos cargados. ¿Quieres agregar otra versión?",
         "confirm_replace_premium": "Ya llegaste al allowance premium. ¿Reemplazar actuales?",
         "none": "Ninguno",
-        "app_subtitle": "Automatización de shorts para monetización",
+        "app_subtitle": "AI generated videos for monetization.",
         "hero_admin_title": "Escala canales con IA y estrategia",
         "hero_admin_subtitle": "Configura nicho, duración, voz, redes y publica en automático con control de plan por tenant.",
         "user_type": "Tipo de usuario",
@@ -248,7 +248,7 @@ TRANSLATIONS = {
         "delete_confirm": "¿Eliminar usuario {name}?",
     },
     "en": {
-        "app_title": "Video-Bot • SaaS",
+        "app_title": "Media by Snake Mafia",
         "admin_panel": "Admin panel",
         "monitor": "Monitoring",
         "language": "Language",
@@ -409,7 +409,7 @@ TRANSLATIONS = {
         "confirm_add_version": "Files already exist. Add another version?",
         "confirm_replace_premium": "You reached premium allowance. Replace current files?",
         "none": "None",
-        "app_subtitle": "Shorts automation for monetization",
+        "app_subtitle": "AI generated videos for monetization.",
         "hero_admin_title": "Scale channels with AI and strategy",
         "hero_admin_subtitle": "Set niche, duration, voice, platforms, and auto-publish with tenant plan control.",
         "user_type": "User type",
@@ -432,7 +432,7 @@ TRANSLATIONS = {
 }
 
 PT_OVERRIDES = {
-    "app_title": "Video-Bot • SaaS",
+    "app_title": "Media by Snake Mafia",
     "admin_panel": "Painel admin",
     "monitor": "Monitoramento",
     "create_user": "Criar usuário",
@@ -484,6 +484,36 @@ PT_OVERRIDES = {
     "confirm_replace_premium": "Você chegou ao limite premium. Substituir os arquivos atuais?",
 }
 TRANSLATIONS["pt"] = {**TRANSLATIONS["en"], **PT_OVERRIDES}
+
+NICHE_LABELS = {
+    "es": {
+        "haircare": "Cuidado del cabello",
+        "hairstyle": "Estilo de cabello",
+        "maquillaje_social": "Maquillaje social",
+        "maquillaje_novias": "Maquillaje para novias",
+        "maquillaje_editorial": "Maquillaje editorial",
+        "unas": "Arte de uñas",
+        "skincare": "Cuidado de la piel",
+    },
+    "en": {
+        "haircare": "Haircare",
+        "hairstyle": "Hairstyle",
+        "maquillaje_social": "Social makeup",
+        "maquillaje_novias": "Bridal makeup",
+        "maquillaje_editorial": "Editorial makeup",
+        "unas": "Nail art",
+        "skincare": "Skincare",
+    },
+    "pt": {
+        "haircare": "Cuidados capilares",
+        "hairstyle": "Penteados",
+        "maquillaje_social": "Maquiagem social",
+        "maquillaje_novias": "Maquiagem para noivas",
+        "maquillaje_editorial": "Maquiagem editorial",
+        "unas": "Nail art",
+        "skincare": "Cuidados com a pele",
+    },
+}
 
 
 def get_lang() -> str:
@@ -580,7 +610,7 @@ def _find_user_by_email(email: str):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html", lang=get_lang(), t=tr(), error="")
+        return render_template("login.html", lang=get_lang(), t=tr(), error="", niche_label=niche_label)
 
     email = _coerce_email(request.form.get("email", ""))
     password = request.form.get("password", "")
@@ -599,7 +629,7 @@ def login():
         session["user"] = user.get("nombre", "")
         return redirect(f"/usuario/{user.get('nombre','')}")
 
-    return render_template("login.html", lang=get_lang(), t=tr(), error="Credenciales inválidas")
+    return render_template("login.html", lang=get_lang(), t=tr(), error="Credenciales inválidas", niche_label=niche_label)
 
 
 @app.route("/logout")
@@ -738,6 +768,15 @@ def list_nichos() -> list:
     except Exception as e:
         print("❌ Error cargando nichos desde generador.py:", str(e))
         return ["motivacion"]
+
+
+def niche_label(niche_key: str, lang: str) -> str:
+    key = (niche_key or "").strip().lower()
+    selected_lang = lang if lang in ("es", "en", "pt") else "es"
+    by_lang = NICHE_LABELS.get(selected_lang, {})
+    if key in by_lang:
+        return by_lang[key]
+    return key.replace("_", " ").title()
 
 
 def _short_error(tb: str, max_chars: int = 1400) -> str:
@@ -1310,7 +1349,8 @@ def home():
         nichos=nichos,
         lang=lang,
         t=tr(),
-        auth=auth
+        auth=auth,
+        niche_label=niche_label
     )
 
 
@@ -1431,7 +1471,8 @@ def usuario(nombre):
         nichos=nichos,
         lang=lang,
         t=tr(),
-        auth=current_auth()
+        auth=current_auth(),
+        niche_label=niche_label
     )
 
 

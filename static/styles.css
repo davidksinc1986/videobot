@@ -707,10 +707,10 @@ margin-top: var(--spacing-sm);
 /* --- Marketing facelift --- */
 .marketing-body {
   background:
-    radial-gradient(1200px 700px at 12% 8%, rgba(246,183,204,.35), transparent 52%),
-    radial-gradient(1100px 700px at 92% 12%, rgba(0,163,224,.35), transparent 58%),
-    radial-gradient(1000px 700px at 50% 95%, rgba(75,29,63,.45), transparent 52%),
-    #09070d;
+    radial-gradient(1200px 760px at 10% 6%, rgba(255, 70, 150, .28), transparent 50%),
+    radial-gradient(1200px 700px at 88% 10%, rgba(0, 130, 255, .24), transparent 56%),
+    radial-gradient(1000px 700px at 52% 95%, rgba(82, 24, 74, .60), transparent 55%),
+    linear-gradient(145deg, #05040a 0%, #090714 46%, #03030a 100%);
 }
 
 .glass {
@@ -820,3 +820,69 @@ margin-top: var(--spacing-sm);
 .help-modal-card{max-width:620px;width:100%;background:linear-gradient(180deg,rgba(25,28,40,.95),rgba(16,18,28,.98));border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:18px}
 .help-modal-card h3{margin:0 0 10px}
 .help-modal-card p{margin:0 0 14px;color:var(--text-muted)}
+
+
+.login-upgrade-shell {
+  grid-template-columns: 1.25fr 0.95fr;
+  align-items: stretch;
+}
+
+.login-upgrade-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ai-slider {
+  position: relative;
+  min-height: 240px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.22);
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.ai-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .5s ease;
+  background-size: cover;
+  background-position: center;
+}
+
+.ai-slide.active { opacity: 1; }
+
+.ai-slide span {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-weight: 700;
+}
+
+.monetization-box {
+  margin-top: 14px;
+  border: 1px solid rgba(0,163,224,.35);
+  background: linear-gradient(170deg, rgba(0,163,224,.10), rgba(246,183,204,.08));
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.monetization-box h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.monetization-box ul {
+  margin: 10px 0;
+  padding-left: 18px;
+}
+
+.monetization-total {
+  margin: 8px 0 0;
+  color: #b7f4ff;
+}

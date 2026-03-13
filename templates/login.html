@@ -1,34 +1,38 @@
 <!doctype html>
-<html lang="{{ 'en' if lang=='en' else 'es' }}">
+<html lang="{{ 'en' if lang=='en' else ('pt' if lang=='pt' else 'es') }}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VideoBot SaaS • Login</title>
+  <title>{{ t.app_title }} • Login</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body class="marketing-body">
-  <div class="marketing-shell">
-    <section class="hero-panel card glass">
-      <span class="pill">🎬 AI Shorts Engine</span>
-      <h1>Publica Shorts que convierten en ingresos.</h1>
-      <p class="sub">Crea contenido para YouTube, TikTok, Instagram y Facebook con guiones, voz, video y automatización de publicación por plan.</p>
+  <div class="marketing-shell login-upgrade-shell">
+    <section class="hero-panel card glass login-upgrade-hero">
+      <span class="pill">🐍 {{ t.app_title }}</span>
+      <h1>{{ t.app_title }}<br/>AI generated videos for monetization.</h1>
+      <p class="sub">
+        {% if lang=='en' %}
+          Create and scale short-form content with automation for YouTube, TikTok, Instagram, and Facebook.
+        {% elif lang=='pt' %}
+          Crie e escale conteúdo curto com automação para YouTube, TikTok, Instagram e Facebook.
+        {% else %}
+          Crea y escala contenido short con automatización para YouTube, TikTok, Instagram y Facebook.
+        {% endif %}
+      </p>
 
-      <div class="showcase-grid">
-        <article class="showcase-item" style="background-image:url('https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=900&q=80')">
-          <span>Growth Social</span>
-        </article>
-        <article class="showcase-item" style="background-image:url('https://images.unsplash.com/photo-1611605698335-8b1569810432?auto=format&fit=crop&w=900&q=80')">
-          <span>Video Marketing</span>
-        </article>
-        <article class="showcase-item" style="background-image:url('https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=900&q=80')">
-          <span>Monetización</span>
-        </article>
+      <div class="ai-slider" id="aiSlider">
+        <article class="ai-slide active" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20motivation%20dark%20cinematic%20neon')"><span>Motivación</span></article>
+        <article class="ai-slide" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20finance%20charts%20dark%20luxury')"><span>Finanzas</span></article>
+        <article class="ai-slide" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20hairstyle%20beauty%20studio%20dark')"><span>{{ niche_label('hairstyle', lang) }}</span></article>
+        <article class="ai-slide" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20haircare%20salon%20dark%20premium')"><span>{{ niche_label('haircare', lang) }}</span></article>
+        <article class="ai-slide" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20bridal%20makeup%20editorial%20dark%20style')"><span>{{ niche_label('maquillaje_novias', lang) }}</span></article>
       </div>
 
       <div class="hero-points">
-        <div>✅ Multiusuario / multitenant</div>
-        <div>✅ Control de planes y redes</div>
-        <div>✅ Duración adaptativa (20s - 45s)</div>
+        <div>✅ 5+ temas visuales: motivación, dinero, {{ niche_label('hairstyle', lang) }}, {{ niche_label('haircare', lang) }}, maquillaje</div>
+        <div>✅ Nichos de belleza: {{ niche_label('maquillaje_social', lang) }}, {{ niche_label('maquillaje_novias', lang) }}, {{ niche_label('maquillaje_editorial', lang) }}, {{ niche_label('unas', lang) }}, {{ niche_label('skincare', lang) }}</div>
+        <div>✅ Flujo de monetización con métricas mensuales por plataforma</div>
       </div>
     </section>
 
@@ -47,7 +51,36 @@
 
         <button class="btn blue" type="submit" style="margin-top:14px; width:100%; justify-content:center;">🔐 Entrar al panel</button>
       </form>
+
+      <div class="monetization-box">
+        <h3>
+          {% if lang=='en' %}Monthly monetization estimate{% elif lang=='pt' %}Estimativa de monetização mensal{% else %}Estimado de monetización mensual{% endif %}
+        </h3>
+        <p class="small">
+          {% if lang=='en' %}Using average RPM/creator payout references (short-form/reels): YouTube $0.05/1k, TikTok $0.40/1k, Instagram Reels bonus $0.30/1k, Facebook Reels $0.35/1k.{% elif lang=='pt' %}Usando referências médias de RPM/pagamento para creators: YouTube $0.05/1k, TikTok $0.40/1k, Instagram Reels $0.30/1k, Facebook Reels $0.35/1k.{% else %}Usando referencias promedio de RPM/pagos para creadores: YouTube $0.05/1k, TikTok $0.40/1k, Instagram Reels $0.30/1k, Facebook Reels $0.35/1k.{% endif %}
+        </p>
+        <ul>
+          <li><b>YouTube:</b> 600k vistas/mes × $0.05 ÷ 1,000 = <b>$30/mes</b></li>
+          <li><b>TikTok:</b> 600k vistas/mes × $0.40 ÷ 1,000 = <b>$240/mes</b></li>
+          <li><b>Instagram:</b> 400k vistas/mes × $0.30 ÷ 1,000 = <b>$120/mes</b></li>
+          <li><b>Facebook:</b> 400k vistas/mes × $0.35 ÷ 1,000 = <b>$140/mes</b></li>
+        </ul>
+        <p class="monetization-total">Total estimado: <b>$530/mes</b> por cuenta activa.</p>
+      </div>
     </section>
   </div>
+
+  <script>
+    (function() {
+      const slides = Array.from(document.querySelectorAll('#aiSlider .ai-slide'));
+      let index = 0;
+      if (!slides.length) return;
+      setInterval(() => {
+        slides[index].classList.remove('active');
+        index = (index + 1) % slides.length;
+        slides[index].classList.add('active');
+      }, 2600);
+    })();
+  </script>
 </body>
 </html>
