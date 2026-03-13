@@ -2,7 +2,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>VideoBot • panel</title>
+  <title>{{ t.app_title }} • panel</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body class="marketing-body">
@@ -15,7 +15,7 @@
       <div class="brand">
         <img class="brand-logo" src="/static/bot1.png" alt="bot">
         <div>
-          <p class="h1">Video-Bot • SaaS</p>
+          <p class="h1">{{ t.app_title }}</p>
           <p class="sub">{{ t.app_subtitle }}</p>
         </div>
       </div>
@@ -58,7 +58,7 @@
               <select name="nicho">
                 {% for k in nichos %}
                   <option value="{{ k }}" {% if k == 'motivacion' %}selected{% endif %}>
-                    {{ k.replace("_", " ").title() }}
+                    {{ niche_label(k, lang) }}
                   </option>
                 {% endfor %}
               </select>
