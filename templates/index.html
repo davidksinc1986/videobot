@@ -6,6 +6,9 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body class="marketing-body">
+  {% if auth.role != "anon" %}
+  <div class="user-role-corner badge"><span class="dot pink"></span>{{ t.user_type }}: <b>{% if auth.role == "superuser" %}{{ t.role_admin }}{% else %}{{ t.role_user }}{% endif %}</b></div>
+  {% endif %}
   <div class="container">
 
     <div class="topbar">
@@ -13,7 +16,7 @@
         <img class="brand-logo" src="/static/bot1.png" alt="bot">
         <div>
           <p class="h1">Video-Bot • SaaS</p>
-          <p class="sub">Automatización de shorts para monetización</p>
+          <p class="sub">{{ t.app_subtitle }}</p>
         </div>
       </div>
 
@@ -23,19 +26,19 @@
         <a class="btn ghost" href="/set-lang/es?next={{ next_url|urlencode }}">{{ t.switch_to_es }}</a>
         <a class="btn ghost" href="/set-lang/en?next={{ next_url|urlencode }}">{{ t.switch_to_en }}</a>
         <a class="btn ghost" href="/set-lang/pt?next={{ next_url|urlencode }}">{{ t.switch_to_pt }}</a>
-        {% if auth.role != "anon" %}<span class="badge"><span class="dot pink"></span><b>{{ auth.role }}</b></span><a class="btn ghost" href="/logout">Salir</a>{% endif %}
+        {% if auth.role != "anon" %}<a class="btn ghost" href="/logout">{{ t.logout }}</a>{% endif %}
       </div>
     </div>
 
     <section class="card glass hero-strip">
       <div>
-        <h2>Escala canales con IA y estrategia</h2>
-        <p class="sub">Configura nicho, duración, voz, redes y publica en automático con control de plan por tenant.</p>
+        <h2>{{ t.hero_admin_title }}</h2>
+        <p class="sub">{{ t.hero_admin_subtitle }}</p>
       </div>
       <div class="hero-mini-grid">
         <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611162616475-46b635cb6868?auto=format&fit=crop&w=800&q=80')"></div>
         <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=800&q=80')"></div>
-        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1616469829941-c7200edec809?auto=format&fit=crop&w=800&q=80')"></div>
+        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1628816417761-74d223a2906d?auto=format&fit=crop&w=800&q=80')"></div>
       </div>
     </section>
 
@@ -46,12 +49,12 @@
         <form action="/crear" method="POST" enctype="multipart/form-data">
           <div class="form-row-group">
             <div class="form-field">
-              <label>Nombre o I</label>
+              <label>{{ t.name_id }}</label>
               <input class="input" name="nombre" placeholder="ej: maria01">
             </div>
 
             <div class="form-field">
-              <label>Nicho</label>
+              <label>{{ t.niche }}</label>
               <select name="nicho">
                 {% for k in nichos %}
                   <option value="{{ k }}" {% if k == 'motivacion' %}selected{% endif %}>
@@ -71,39 +74,39 @@
             </div>
 
             <div class="form-field">
-              <label>Tenant ID</label>
+              <label>{{ t.tenant_id_label }}</label>
               <input class="input" name="tenant_id" placeholder="acme" value="default"/>
             </div>
 
             <div class="form-field">
-              <label>Plan</label>
+              <label>{{ t.plan_label }}</label>
               <select name="plan">
-                <option value="starter" selected>starter (YouTube)</option>
-                <option value="growth">growth (YouTube + TikTok + Instagram)</option>
-                <option value="scale">scale (todas las redes)</option>
+                <option value="starter" selected>{{ t.plan_starter }} (YouTube)</option>
+                <option value="growth">{{ t.plan_growth }} (YouTube + TikTok + Instagram)</option>
+                <option value="scale">{{ t.plan_scale }} (YouTube + TikTok + Instagram + Facebook)</option>
               </select>
             </div>
 
             <div class="form-field">
-              <label>Duración objetivo (20-45s)</label>
+              <label>{{ t.target_seconds_label }}</label>
               <input class="input" type="number" min="20" max="45" name="target_seconds" value="30"/>
             </div>
 
             <div class="form-field">
-              <label>Fuente</label>
+              <label>{{ t.content_source }}</label>
               <select name="content_source">
-                <option value="ai" selected>IA</option>
-                <option value="file">Archivo</option>
+                <option value="ai" selected>{{ t.content_ai }}</option>
+                <option value="file">{{ t.content_file }}</option>
               </select>
             </div>
 
             <div class="form-field">
-              <label>Archivo base (opcional)</label>
+              <label>{{ t.content_file_optional }}</label>
               <input class="input" type="file" name="content_file" accept=".txt,.md,.csv"/>
             </div>
 
             <div class="form-field">
-              <label>Voz</label>
+              <label>{{ t.voice_provider }}</label>
               <select name="voice_provider">
                 <option value="gtts" selected>gtts (free)</option>
                 <option value="elevenlabs">elevenlabs</option>
@@ -112,7 +115,7 @@
             </div>
 
             <div class="form-field">
-              <label>Video</label>
+              <label>{{ t.video_provider }}</label>
               <select name="video_provider">
                 <option value="pixabay" selected>pixabay (free)</option>
                 <option value="pexels">pexels</option>
@@ -122,7 +125,7 @@
             </div>
 
             <div class="form-field">
-              <label>Guion IA</label>
+              <label>{{ t.script_provider }}</label>
               <select name="script_provider">
                 <option value="local" selected>local</option>
                 <option value="openai">openai</option>
@@ -130,11 +133,11 @@
             </div>
 
             <div class="form-field">
-              <label>Correo login</label>
+              <label>{{ t.email_login }}</label>
               <input class="input" name="email" type="email" placeholder="cliente@correo.com" required/>
             </div>
             <div class="form-field">
-              <label>Contraseña login</label>
+              <label>{{ t.password_login }}</label>
               <input class="input" type="password" name="password" placeholder="******" required/>
             </div>
           </div>
@@ -146,29 +149,29 @@
       </div>
 
       <div class="card quick-actions-card glass">
-        <h2>Panel rápido</h2>
-        <p class="small">Gestiona usuarios, genera contenido y opera uploads por red social desde un solo lugar.</p>
-        <a class="btn ghost" href="/monitor">📡 Monitoreo</a>
-        <form class="inline-form" action="/admin/limpiar/videos" method="POST"><button class="btn ghost" type="submit">🧹 Vaciar Videos</button></form>
-        <form class="inline-form" action="/admin/limpiar/temp" method="POST"><button class="btn ghost" type="submit">🧹 Vaciar Audios</button></form>
+        <h2>{{ t.quick_panel_title }}</h2>
+        <p class="small">{{ t.quick_panel_desc }}</p>
+        <a class="btn ghost" href="/monitor">📡 {{ t.monitor }}</a>
+        <form class="inline-form" action="/admin/limpiar/videos" method="POST"><button class="btn ghost" type="submit">🧹 {{ t.clear_videos_btn }}</button></form>
+        <form class="inline-form" action="/admin/limpiar/temp" method="POST"><button class="btn ghost" type="submit">🧹 {{ t.clear_temp_btn }}</button></form>
       </div>
       {% endif %}
     </div>
 
     <div class="card users-card glass">
-      <h2>Usuarios</h2>
+      <h2>{{ t.users }}</h2>
       {% if not usuarios %}
-      <p class="small">No hay usuarios todavía.</p>
+      <p class="small">{{ t.no_users_yet }}</p>
       {% else %}
         <div class="table">
           <div class="thead">
-            <div>Usuario</div>
-            <div>Tenant / Plan</div>
-            <div>Nicho</div>
-            <div>Estado</div>
-            <div>Último video</div>
-            <div>Hoy</div>
-            <div>Acciones</div>
+            <div>{{ t.user }}</div>
+            <div>{{ t.tenant_plan }}</div>
+            <div>{{ t.niche }}</div>
+            <div>{{ t.status }}</div>
+            <div>{{ t.last_video }}</div>
+            <div>{{ t.today }}</div>
+            <div>{{ t.actions }}</div>
           </div>
 
           {% for u in usuarios %}
@@ -176,12 +179,12 @@
             <div class="user-info">
               <div class="badge"><span class="dot pink"></span> <b>{{ u.nombre }}</b></div>
               <div class="small scheduler-info">
-                scheduler: {{ 'ON' if u.activo_scheduler else 'OFF' }} · intervalo: {{ u.intervalo_minutos }}m
+                {{ t.scheduler }}: {{ 'ON' if u.activo_scheduler else 'OFF' }} · {{ t.interval }}: {{ u.intervalo_minutos }}m
               </div>
 
               {% if u.ultimo_error %}
                 <div class="small error-message">
-                  ⚠️ error reciente
+                  ⚠️ {{ t.recent_error }}
                 </div>
               {% endif %}
             </div>
@@ -199,12 +202,12 @@
             <div class="user-videos-today"><b>{{ u.videos_hoy }}/{{ u.max_videos_dia }}</b></div>
 
             <div class="action-group">
-              <a class="btn ghost" href="/usuario/{{ u.nombre }}">⚙️ Editar</a>
-              <a class="btn" href="/generar/{{ u.nombre }}">🎬 Generar</a>
+              <a class="btn ghost" href="/usuario/{{ u.nombre }}">⚙️ {{ t.edit }}</a>
+              <a class="btn" href="/generar/{{ u.nombre }}">🎬 {{ t.generate }}</a>
 
               {% if auth.role=="superuser" and u.nombre|lower != 'david' %}
-              <form class="inline-form" action="/usuario/{{ u.nombre }}/eliminar" method="POST" onsubmit="return confirm('Eliminar usuario {{u.nombre}}?');">
-                <button class="btn danger" type="submit">🗑 Eliminar</button>
+              <form class="inline-form" action="/usuario/{{ u.nombre }}/eliminar" method="POST" onsubmit="return confirm('{{ t.delete_confirm|replace('{name}', u.nombre) }}');">
+                <button class="btn danger" type="submit">🗑 {{ t.delete }}</button>
               </form>
               {% endif %}
             </div>
