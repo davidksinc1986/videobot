@@ -1174,8 +1174,6 @@ def crear():
         "nicho": nicho,
         "idioma": idioma if idioma in ("es", "en", "pt") else "es",
         "target_seconds": max(20, min(45, target_seconds)),
-        "premium_backgrounds_enabled": bool(request.form.get("premium_backgrounds_enabled")),
-        "premium_backgrounds_dir": request.form.get("premium_backgrounds_dir", "").strip(),
         "content_source": _pick_allowed(request.form.get("content_source", "ai"), ["ai", "file"], "ai"),
         "content_file_path": request.form.get("content_file_path", "").strip(),
         "voice_provider": _pick_allowed(request.form.get("voice_provider", "gtts"), ["auto", "elevenlabs", "gtts"], "gtts"),

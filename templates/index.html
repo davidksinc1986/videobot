@@ -45,21 +45,102 @@
         <h2>{{ t.create_user }}</h2>
         <form action="/crear" method="POST">
           <div class="form-row-group">
-            <div class="form-field"><label>Nombre o ID</label><input class="input" name="nombre" placeholder="ej: maria01"></div>
-            <div class="form-field"><label>Tenant ID</label><input class="input" name="tenant_id" placeholder="acme" value="default"/></div>
-            <div class="form-field"><label>Plan</label><select name="plan"><option value="starter" selected>starter</option><option value="growth">growth</option><option value="scale">scale</option></select></div>
-            <div class="form-field"><label>Nicho</label><select name="nicho">{% for k in nichos %}<option value="{{ k }}" {% if k == 'motivacion' %}selected{% endif %}>{{ k.replace("_", " ").title() }}</option>{% endfor %}</select></div>
-            <div class="form-field"><label>{{ t.user_language }}</label><select name="idioma"><option value="es" selected>es</option><option value="en">en</option><option value="pt">pt</option></select></div>
-            <div class="form-field"><label>Duración objetivo (20-45s)</label><input class="input" type="number" min="20" max="45" name="target_seconds" value="30"/></div>
-            <div class="form-field"><label>Video</label><select name="video_provider"><option value="library">library (premium local)</option><option value="pixabay" selected>pixabay</option><option value="pexels">pexels</option><option value="auto">auto</option><option value="fallback">fallback</option></select></div>
-            <div class="form-field"><label>Usar fondos premium</label><select name="premium_backgrounds_enabled"><option value="1">Sí</option><option value="">No</option></select></div>
-            <div class="form-field"><label>Carpeta fondos premium (opcional)</label><input class="input" name="premium_backgrounds_dir" placeholder="sessions/maria01/backgrounds"/></div>
-            <div class="form-field"><label>Fuente</label><select name="content_source"><option value="ai" selected>IA</option><option value="file">Archivo</option></select></div>
-            <div class="form-field"><label>Archivo TXT (opcional)</label><input class="input" name="content_file_path" placeholder="nichos/motivacion.txt"/></div>
-            <div class="form-field"><label>Voz</label><select name="voice_provider"><option value="gtts" selected>gtts</option><option value="elevenlabs">elevenlabs</option><option value="auto">auto</option></select></div>
-            <div class="form-field"><label>Guion IA</label><select name="script_provider"><option value="local" selected>local</option><option value="openai">openai</option></select></div>
-            <div class="form-field"><label>Correo login</label><input class="input" name="email" type="email" placeholder="cliente@correo.com" required/></div>
-            <div class="form-field"><label>Contraseña login</label><input class="input" type="password" name="password" placeholder="******" required/></div>
+            <div class="form-field">
+              <label>Nombre o I</label>
+              <input class="input" name="nombre" placeholder="ej: maria01">
+            </div>
+
+            <div class="form-field">
+              <label>Nicho</label>
+              <select name="nicho">
+                {% for k in nichos %}
+                  <option value="{{ k }}" {% if k == 'motivacion' %}selected{% endif %}>
+                    {{ k.replace("_", " ").title() }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>{{ t.user_language }}</label>
+              <select name="idioma">
+                <option value="es" selected>es</option>
+                <option value="en">en</option>
+                <option value="pt">pt</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Tenant ID</label>
+              <input class="input" name="tenant_id" placeholder="acme" value="default"/>
+            </div>
+
+            <div class="form-field">
+              <label>Plan</label>
+              <select name="plan">
+                <option value="starter" selected>starter (YouTube)</option>
+                <option value="growth">growth (YouTube + TikTok + Instagram)</option>
+                <option value="scale">scale (todas las redes)</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Duración objetivo (20-45s)</label>
+              <input class="input" type="number" min="20" max="45" name="target_seconds" value="30"/>
+            </div>
+
+            <div class="form-field">
+              <label>Fuente</label>
+              <select name="content_source">
+                <option value="ai" selected>IA</option>
+                <option value="file">Archivo</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Archivo (opcional)</label>
+              <input class="input" name="content_file_path" placeholder="nichos/motivacion.txt"/>
+            </div>
+
+            <div class="form-field">
+              <label>Voz</label>
+              <select name="voice_provider">
+                <option value="gtts" selected>gtts (free)</option>
+                <option value="elevenlabs">elevenlabs</option>
+                <option value="auto">auto</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Video</label>
+              <select name="video_provider">
+                <option value="pixabay" selected>pixabay (free)</option>
+                <option value="pexels">pexels</option>
+                <option value="auto">auto</option>
+                <option value="fallback">fallback</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Guion IA</label>
+              <select name="script_provider">
+                <option value="local" selected>local</option>
+                <option value="openai">openai</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Correo login</label>
+              <input class="input" name="email" type="email" placeholder="cliente@correo.com" required/>
+            </div>
+            <div class="form-field">
+              <label>Contraseña login</label>
+              <input class="input" type="password" name="password" placeholder="******" required/>
+            </div>
+          </div>
+
+          <div class="action-button-row">
+            <button class="btn blue" type="submit">➕ {{ t.create }}</button>
           </div>
           <div class="action-button-row"><button class="btn blue" type="submit">➕ {{ t.create }}</button></div>
         </form>
@@ -80,24 +161,54 @@
       {% if not usuarios %}
       <p class="small">No hay usuarios todavía.</p>
       {% else %}
-      <div class="table">
-        <div class="thead">
-          <div>Usuario</div><div>Tenant / Plan</div><div>Nicho</div><div>Estado</div><div>Último video</div><div>Hoy</div><div>Acciones</div>
-        </div>
-        {% for u in usuarios %}
-        <div class="trow user-entry">
-          <div class="user-info"><div class="badge"><span class="dot pink"></span><b>{{ u.nombre }}</b></div><div class="small scheduler-info">scheduler: {{ 'ON' if u.activo_scheduler else 'OFF' }} · {{ u.intervalo_minutos }}m</div></div>
-          <div class="small">{{ u.tenant_id }} / {{ u.plan }}</div>
-          <div class="user-niche">{{ u.nicho }}</div>
-          <div class="user-status"><span class="badge"><span class="dot"></span> {{ u.estado }}</span></div>
-          <div class="small user-last-video-path">{{ u.ultimo_video }}</div>
-          <div class="user-videos-today"><b>{{ u.videos_hoy }}/{{ u.max_videos_dia }}</b></div>
-          <div class="action-group">
-            <a class="btn ghost" href="/usuario/{{ u.nombre }}">⚙️ Editar</a>
-            <a class="btn" href="/generar/{{ u.nombre }}">🎬 Generar</a>
-            {% if auth.role=="superuser" and u.nombre|lower != 'david' %}
-            <form class="inline-form" action="/usuario/{{ u.nombre }}/eliminar" method="POST" onsubmit="return confirm('Eliminar usuario {{u.nombre}}?');"><button class="btn danger" type="submit">🗑 Eliminar</button></form>
-            {% endif %}
+        <div class="table">
+          <div class="thead">
+            <div>Usuario</div>
+            <div>Tenant / Plan</div>
+            <div>Nicho</div>
+            <div>Estado</div>
+            <div>Último video</div>
+            <div>Hoy</div>
+            <div>Acciones</div>
+          </div>
+
+          {% for u in usuarios %}
+          <div class="trow user-entry">
+            <div class="user-info">
+              <div class="badge"><span class="dot pink"></span> <b>{{ u.nombre }}</b></div>
+              <div class="small scheduler-info">
+                scheduler: {{ 'ON' if u.activo_scheduler else 'OFF' }} · intervalo: {{ u.intervalo_minutos }}m
+              </div>
+
+              {% if u.ultimo_error %}
+                <div class="small error-message">
+                  ⚠️ error reciente
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="small">{{ u.tenant_id }} / {{ u.plan }}</div>
+            <div class="user-niche">{{ u.nicho }}</div>
+            <div class="user-status">
+              <span class="badge"><span class="dot"></span> {{ u.estado }}</span>
+            </div>
+
+            <div class="small user-last-video-path">
+              {{ u.ultimo_video }}
+            </div>
+
+            <div class="user-videos-today"><b>{{ u.videos_hoy }}/{{ u.max_videos_dia }}</b></div>
+
+            <div class="action-group">
+              <a class="btn ghost" href="/usuario/{{ u.nombre }}">⚙️ Editar</a>
+              <a class="btn" href="/generar/{{ u.nombre }}">🎬 Generar</a>
+
+              {% if auth.role=="superuser" and u.nombre|lower != 'david' %}
+              <form class="inline-form" action="/usuario/{{ u.nombre }}/eliminar" method="POST" onsubmit="return confirm('Eliminar usuario {{u.nombre}}?');">
+                <button class="btn danger" type="submit">🗑 Eliminar</button>
+              </form>
+              {% endif %}
+            </div>
           </div>
         </div>
         {% endfor %}
