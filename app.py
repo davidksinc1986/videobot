@@ -629,10 +629,14 @@ def ensure_defaults(user: dict) -> dict:
         "ventana_fin": "22:00",
 
         "idioma": "es",
+        "tenant_id": "default",
+        "plan": "starter",
         "nicho": valid_nichos[0] if valid_nichos else "motivacion",
+        "target_seconds": 30,
         "hook_final": "Suscríbete para más 🔥",
         "content_source": "ai",
         "content_file_path": "",
+        "speech_history": [],
         "voice_provider": "gtts",
         "video_provider": "pixabay",
         "script_provider": "local",
@@ -724,6 +728,22 @@ def ensure_defaults(user: dict) -> dict:
             pass
 
     return user
+
+
+PLAN_PLATFORM_RULES = {
+    "starter": ["youtube"],
+    "growth": ["youtube", "tiktok", "instagram"],
+    "scale": ["youtube", "tiktok", "instagram", "facebook"],
+}
+
+
+def _pick_plan(raw: str) -> str:
+    p = (raw or "").strip().lower()
+    return p if p in PLAN_PLATFORM_RULES else "starter"
+
+
+def _plan_allowed_platforms(plan: str) -> set[str]:
+    return set(PLAN_PLATFORM_RULES.get(_pick_plan(plan), PLAN_PLATFORM_RULES["starter"]))
 
 
 # ----------------------------
@@ -944,6 +964,7 @@ def run_job_for_user(nombre: str) -> None:
 
         _append_event(user, "generate_start", "Generación de video iniciada")
         out = generar_video_usuario(user)
+        save_user(user)
         video_path = out.get("video_path") if isinstance(out, dict) else str(out)
 
         if not video_path:
@@ -1118,10 +1139,18 @@ def crear():
     if not email_login or not raw_pw:
         abort(400, "Debes definir correo y contraseña para el usuario")
 
+    try:
+        target_seconds = int(request.form.get("target_seconds", 30) or 30)
+    except Exception:
+        target_seconds = 30
+
     user = ensure_defaults({
         "nombre": nombre,
+        "tenant_id": _safe_name(request.form.get("tenant_id", "default")) or "default",
+        "plan": _pick_plan(request.form.get("plan", "starter")),
         "nicho": nicho,
         "idioma": idioma if idioma in ("es", "en", "pt") else "es",
+        "target_seconds": max(20, min(45, target_seconds)),
         "content_source": _pick_allowed(request.form.get("content_source", "ai"), ["ai", "file"], "ai"),
         "content_file_path": request.form.get("content_file_path", "").strip(),
         "voice_provider": _pick_allowed(request.form.get("voice_provider", "gtts"), ["auto", "elevenlabs", "gtts"], "gtts"),
@@ -1211,6 +1240,7 @@ def usuario_guardar(nombre):
         except:
             return default
 
+    user["target_seconds"] = max(20, min(45, _int("target_seconds", user.get("target_seconds", 30))))
     user["intervalo_minutos"] = max(5, _int("intervalo_minutos", user.get("intervalo_minutos", 60)))
     user["max_videos_dia"] = max(0, _int("max_videos_dia", user.get("max_videos_dia", 24)))
 
@@ -1221,10 +1251,24 @@ def usuario_guardar(nombre):
     user["continuar_si_falla"] = bool(request.form.get("continuar_si_falla"))
 
     if is_super:
+        user["tenant_id"] = _safe_name(request.form.get("tenant_id", user.get("tenant_id", "default"))) or "default"
+        user["plan"] = _pick_plan(request.form.get("plan", user.get("plan", "starter")))
+
+    if is_super:
         user["youtube_activo"] = bool(request.form.get("youtube_activo"))
         user["tiktok_activo"] = bool(request.form.get("tiktok_activo"))
         user["instagram_activo"] = bool(request.form.get("instagram_activo"))
         user["facebook_activo"] = bool(request.form.get("facebook_activo"))
+
+    allowed = _plan_allowed_platforms(user.get("plan", "starter"))
+    if "youtube" not in allowed:
+        user["youtube_activo"] = False
+    if "tiktok" not in allowed:
+        user["tiktok_activo"] = False
+    if "instagram" not in allowed:
+        user["instagram_activo"] = False
+    if "facebook" not in allowed:
+        user["facebook_activo"] = False
 
     if is_super:
         if is_admin_legacy_user(user):

@@ -1287,6 +1287,23 @@ def _read_lines_file(path: str) -> list[str]:
         return []
 
 
+def _pick_non_repeated_lines(user: dict, lines: list[str], take: int) -> list[str]:
+    history = user.get("speech_history", [])
+    if not isinstance(history, list):
+        history = []
+
+    recent = set(history[-200:])
+    pool = [ln for ln in lines if ln not in recent]
+    source = pool if len(pool) >= take else lines
+    if not source:
+        return []
+
+    picked = random.sample(source, k=take) if len(source) >= take else source
+    history.extend(picked)
+    user["speech_history"] = history[-500:]
+    return picked
+
+
 def _script_from_nicho_library(user: dict, nicho_key: str, seconds: int) -> str:
     lines = _read_lines_file(os.path.join("nichos", f"{nicho_key}.txt"))
     if not lines:
@@ -1313,7 +1330,7 @@ def _resolve_script_text(user: dict, nicho_key: str, tema: str, seconds: int, es
             if lines:
                 hook = (user.get("hook_final") or "Suscríbete para más").strip()
                 take = min(4, max(2, int(seconds / 12)))
-                picked = random.sample(lines, k=take) if len(lines) >= take else lines
+                picked = _pick_non_repeated_lines(user, lines, take)
                 return (" ".join(picked) + f" {hook}").strip()
 
         # si no proporciona textos o el archivo viene vacío, caer a nicho por defecto

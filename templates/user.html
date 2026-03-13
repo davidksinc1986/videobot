@@ -85,6 +85,10 @@
           </div>
 
           <div class="row" style="margin-top:10px;">
+            <div style="min-width:180px;">
+              <label>Duración objetivo (20-45s)</label><br/>
+              <input class="input" type="number" min="20" max="45" name="target_seconds" value="{{ user.target_seconds }}" style="width:100%;" />
+            </div>
             <div style="min-width:220px;">
               <label>{{ t.email }}</label><br/>
               <input class="input" name="email" value="{{ user.email }}" style="width:100%;" />
@@ -102,6 +106,23 @@
               </select>
             </div>
           </div>
+
+          {% if auth.role=="superuser" %}
+          <div class="row" style="margin-top:10px;">
+            <div style="min-width:220px;">
+              <label>Tenant ID</label><br/>
+              <input class="input" name="tenant_id" value="{{ user.tenant_id }}" style="width:100%;" />
+            </div>
+            <div style="min-width:260px;">
+              <label>Plan (controlado por admin)</label><br/>
+              <select name="plan" style="width:100%;">
+                <option value="starter" {% if user.plan=='starter' %}selected{% endif %}>starter: solo YouTube</option>
+                <option value="growth" {% if user.plan=='growth' %}selected{% endif %}>growth: YouTube + TikTok + Instagram</option>
+                <option value="scale" {% if user.plan=='scale' %}selected{% endif %}>scale: todas las redes</option>
+              </select>
+            </div>
+          </div>
+          {% endif %}
 
           <div class="row" style="margin-top:10px;">
             <div style="min-width:360px; flex:1;">
@@ -169,6 +190,11 @@
           <div class="cred-grid">
             <div class="full">
               <div class="small">{{ t.api_creds_hint }}</div>
+              <div class="small" style="margin-top:6px;">
+                Gratis: <b>gTTS</b> (sin API key), <b>Pixabay</b> (crear cuenta y pegar API key), <b>Pexels</b> (crear cuenta y pegar API key).<br/>
+                Pago/Freemium: <b>ElevenLabs</b> (crear cuenta, obtener API key y Voice ID), <b>OpenAI</b> (crear API key con billing).<br/>
+                Si no tienes API key de una red social, puedes usar login persistente subiendo cookies/storage_state desde el bloque de sesiones.
+              </div>
             </div>
 
             <div>
@@ -213,7 +239,7 @@
                   <div class="platform-meta">Uploader principal • Shorts 9:16</div>
                 </div>
                 <label class="toggle">
-                  <input type="checkbox" name="youtube_activo" {% if user.youtube_activo %}checked{% endif %} {% if auth.role!="superuser" %}disabled{% endif %}/>
+                  <input type="checkbox" name="youtube_activo" {% if user.youtube_activo %}checked{% endif %} {% if auth.role!="superuser" or user.plan not in ['starter','growth','scale'] %}disabled{% endif %}/>
                   <span>{{ t.active }}</span>
                 </label>
               </div>
@@ -251,7 +277,7 @@
                   <div class="platform-meta">Automatización temporal • Playwright/Selenium</div>
                 </div>
                 <label class="toggle">
-                  <input type="checkbox" name="tiktok_activo" {% if user.tiktok_activo %}checked{% endif %} {% if auth.role!="superuser" %}disabled{% endif %}/>
+                  <input type="checkbox" name="tiktok_activo" {% if user.tiktok_activo %}checked{% endif %} {% if auth.role!="superuser" or user.plan not in ['growth','scale'] %}disabled{% endif %}/>
                   <span>{{ t.active }}</span>
                 </label>
               </div>
@@ -281,7 +307,7 @@
                   <div class="platform-meta">Reels • Automatización temporal</div>
                 </div>
                 <label class="toggle">
-                  <input type="checkbox" name="instagram_activo" {% if user.instagram_activo %}checked{% endif %} {% if auth.role!="superuser" %}disabled{% endif %}/>
+                  <input type="checkbox" name="instagram_activo" {% if user.instagram_activo %}checked{% endif %} {% if auth.role!="superuser" or user.plan not in ['growth','scale'] %}disabled{% endif %}/>
                   <span>{{ t.active }}</span>
                 </label>
               </div>
@@ -311,7 +337,7 @@
                   <div class="platform-meta">Reels • Automatización temporal</div>
                 </div>
                 <label class="toggle">
-                  <input type="checkbox" name="facebook_activo" {% if user.facebook_activo %}checked{% endif %} {% if auth.role!="superuser" %}disabled{% endif %}/>
+                  <input type="checkbox" name="facebook_activo" {% if user.facebook_activo %}checked{% endif %} {% if auth.role!="superuser" or user.plan != 'scale' %}disabled{% endif %}/>
                   <span>{{ t.active }}</span>
                 </label>
               </div>
