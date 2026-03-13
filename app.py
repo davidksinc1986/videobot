@@ -8,6 +8,27 @@ import subprocess
 import unicodedata
 from datetime import datetime
 from functools import wraps
+
+
+def _load_local_env(path: str = ".env"):
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip().strip('"').strip("'")
+                if k and k not in os.environ:
+                    os.environ[k] = v
+    except Exception:
+        pass
+
+
+_load_local_env()
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session
@@ -346,7 +367,7 @@ def set_lang(lang):
 # ----------------------------
 
 def _superuser_config() -> dict:
-    email = (os.getenv("SUPERUSER_EMAIL") or "davidksinc").strip().lower()
+    email = (os.getenv("SUPERUSER_EMAIL") or "davidksinc@gmail.com").strip().lower()
     pwd = os.getenv("SUPERUSER_PASSWORD") or "M@davi19!"
     return {"email": email, "password": pwd}
 
@@ -639,6 +660,8 @@ def ensure_defaults(user: dict) -> dict:
         "speech_history": [],
         "voice_provider": "gtts",
         "video_provider": "pixabay",
+        "premium_backgrounds_enabled": False,
+        "premium_backgrounds_dir": "",
         "script_provider": "local",
         "email": "",
         "password_hash": "",
@@ -1154,7 +1177,7 @@ def crear():
         "content_source": _pick_allowed(request.form.get("content_source", "ai"), ["ai", "file"], "ai"),
         "content_file_path": request.form.get("content_file_path", "").strip(),
         "voice_provider": _pick_allowed(request.form.get("voice_provider", "gtts"), ["auto", "elevenlabs", "gtts"], "gtts"),
-        "video_provider": _pick_allowed(request.form.get("video_provider", "pixabay"), ["auto", "pexels", "pixabay", "fallback"], "pixabay"),
+        "video_provider": _pick_allowed(request.form.get("video_provider", "pixabay"), ["auto", "library", "pexels", "pixabay", "fallback"], "pixabay"),
         "script_provider": _pick_allowed(request.form.get("script_provider", "local"), ["local", "openai"], "local"),
         "email": email_login,
         "password_hash": generate_password_hash(raw_pw),
@@ -1225,8 +1248,10 @@ def usuario_guardar(nombre):
     user["content_source"] = _pick_allowed(request.form.get("content_source", user.get("content_source", "ai")), ["ai", "file"], "ai")
     user["content_file_path"] = request.form.get("content_file_path", user.get("content_file_path", "")).strip()
     user["voice_provider"] = _pick_allowed(request.form.get("voice_provider", user.get("voice_provider", "gtts")), ["auto", "elevenlabs", "gtts"], "gtts")
-    user["video_provider"] = _pick_allowed(request.form.get("video_provider", user.get("video_provider", "pixabay")), ["auto", "pexels", "pixabay", "fallback"], "pixabay")
+    user["video_provider"] = _pick_allowed(request.form.get("video_provider", user.get("video_provider", "pixabay")), ["auto", "library", "pexels", "pixabay", "fallback"], "pixabay")
     user["script_provider"] = _pick_allowed(request.form.get("script_provider", user.get("script_provider", "local")), ["local", "openai"], "local")
+    user["premium_backgrounds_enabled"] = bool(request.form.get("premium_backgrounds_enabled"))
+    user["premium_backgrounds_dir"] = request.form.get("premium_backgrounds_dir", user.get("premium_backgrounds_dir", "")).strip()
     user["email"] = _coerce_email(request.form.get("email", user.get("email", "")))
     new_pw = request.form.get("password", "").strip()
     if new_pw:

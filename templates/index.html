@@ -2,28 +2,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>youtube-bot • panel</title>
+  <title>VideoBot • panel</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body>
+<body class="marketing-body">
   <div class="container">
 
     <div class="topbar">
       <div class="brand">
         <img class="brand-logo" src="/static/bot1.png" alt="bot">
         <div>
-          <p class="h1">Video-Bot • SaaS </p>
-          <p class="sub">Panel Admin ·</p>
+          <p class="h1">Video-Bot • SaaS</p>
+          <p class="sub">Automatización de shorts para monetización</p>
         </div>
       </div>
 
       <div class="topbar-actions">
-        <span class="badge">
-          <span class="dot"></span>
-          {{ t.language }}:
-          <b>{% if lang=='es' %}{{ t.spanish }}{% elif lang=='pt' %}{{ t.portuguese }}{% else %}{{ t.english }}{% endif %}</b>
-        </span>
-
+        <span class="badge"><span class="dot"></span>{{ t.language }}: <b>{% if lang=='es' %}{{ t.spanish }}{% elif lang=='pt' %}{{ t.portuguese }}{% else %}{{ t.english }}{% endif %}</b></span>
         {% set next_url = request.full_path if request.full_path else '/' %}
         <a class="btn ghost" href="/set-lang/es?next={{ next_url|urlencode }}">{{ t.switch_to_es }}</a>
         <a class="btn ghost" href="/set-lang/en?next={{ next_url|urlencode }}">{{ t.switch_to_en }}</a>
@@ -32,10 +27,22 @@
       </div>
     </div>
 
-    <div class="grid top-cards-grid">
-      {% if auth.role=="superuser" %}<div class="card create-user-card">
-        <h2>{{ t.create_user }}</h2>
+    <section class="card glass hero-strip">
+      <div>
+        <h2>Escala canales con IA y estrategia</h2>
+        <p class="sub">Configura nicho, duración, voz, redes y publica en automático con control de plan por tenant.</p>
+      </div>
+      <div class="hero-mini-grid">
+        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611162616475-46b635cb6868?auto=format&fit=crop&w=800&q=80')"></div>
+        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=800&q=80')"></div>
+        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1616469829941-c7200edec809?auto=format&fit=crop&w=800&q=80')"></div>
+      </div>
+    </section>
 
+    <div class="grid top-cards-grid">
+      {% if auth.role=="superuser" %}
+      <div class="card create-user-card glass">
+        <h2>{{ t.create_user }}</h2>
         <form action="/crear" method="POST">
           <div class="form-row-group">
             <div class="form-field">
@@ -135,40 +142,24 @@
           <div class="action-button-row">
             <button class="btn blue" type="submit">➕ {{ t.create }}</button>
           </div>
+          <div class="action-button-row"><button class="btn blue" type="submit">➕ {{ t.create }}</button></div>
         </form>
-
-        <div class="hr"></div>
-        <p class="small tip-text">
-          Tip: el usuario <b>David</b> se mantiene con <code>token.pickle</code> global (legacy).
-          Los demás pueden usar <b>token_upload</b> subiendo token por usuario.
-        </p>
       </div>
 
-      <div class="card quick-actions-card">
-        <h2>Acciones rápidas</h2>
-        <p class="small action-list">
-          • “Generar” crea el video (tu pipeline actual).<br>
-          • “Editar” abre configuración de plataformas + credenciales por usuario.<br>
-          • “Eliminar” borra el usuario (y sus sesiones), no toca a David.
-        </p><br>
-
+      <div class="card quick-actions-card glass">
+        <h2>Panel rápido</h2>
+        <p class="small">Gestiona usuarios, genera contenido y opera uploads por red social desde un solo lugar.</p>
         <a class="btn ghost" href="/monitor">📡 Monitoreo</a>
-
-        <form class="inline-form" action="/admin/limpiar/videos" method="POST">
-          <button class="btn ghost" type="submit">🧹 Vaciar Videos</button>
-        </form>
-
-        <form class="inline-form" action="/admin/limpiar/temp" method="POST">
-          <button class="btn ghost" type="submit">🧹 Vaciar Audios</button>
-        </form>
-      </div>{% endif %}
+        <form class="inline-form" action="/admin/limpiar/videos" method="POST"><button class="btn ghost" type="submit">🧹 Vaciar Videos</button></form>
+        <form class="inline-form" action="/admin/limpiar/temp" method="POST"><button class="btn ghost" type="submit">🧹 Vaciar Audios</button></form>
+      </div>
+      {% endif %}
     </div>
 
-    <div class="card users-card">
+    <div class="card users-card glass">
       <h2>Usuarios</h2>
-
       {% if not usuarios %}
-        <p class="small">No hay usuarios todavía.</p>
+      <p class="small">No hay usuarios todavía.</p>
       {% else %}
         <div class="table">
           <div class="thead">
@@ -219,11 +210,11 @@
               {% endif %}
             </div>
           </div>
-          {% endfor %}
         </div>
+        {% endfor %}
+      </div>
       {% endif %}
     </div>
-
   </div>
 </body>
 </html>

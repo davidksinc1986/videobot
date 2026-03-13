@@ -1,6 +1,8 @@
 import os
 import time
 import random
+import glob
+import shutil
 import requests
 
 # --- MoviePy Compatibilidad Robusta ---
@@ -1376,13 +1378,45 @@ def _resolve_script_text(user: dict, nicho_key: str, tema: str, seconds: int, es
     return _build_script(user, nicho_key, tema, seconds, estilo)
 
 
+
+
+def _user_background_library(user: dict) -> tuple[bool, str]:
+    plan = (user.get("plan") or "starter").strip().lower()
+    enabled = bool(user.get("premium_backgrounds_enabled")) and plan in ("growth", "scale")
+    user_name = (user.get("nombre") or "").strip()
+    default_dir = os.path.join("sessions", user_name, "backgrounds") if user_name else ""
+    custom_dir = (user.get("premium_backgrounds_dir") or "").strip()
+    path = custom_dir or default_dir
+    return enabled, path
+
+
+def _pick_library_video(user: dict, out_path: str) -> bool:
+    enabled, library_path = _user_background_library(user)
+    if not enabled or not library_path or not os.path.isdir(library_path):
+        return False
+
+    files = []
+    for ext in ("*.mp4", "*.mov", "*.m4v", "*.webm"):
+        files.extend(glob.glob(os.path.join(library_path, ext)))
+    files = [f for f in files if os.path.isfile(f)]
+    if not files:
+        return False
+
+    chosen = random.choice(files)
+    try:
+        shutil.copy2(chosen, out_path)
+        return os.path.exists(out_path) and os.path.getsize(out_path) > 1000
+    except Exception as e:
+        print(f"⚠️ No se pudo usar video premium local: {e}")
+        return False
+
 def _provider_order(user: dict, kind: str) -> list[str]:
     setting_key = "voice_provider" if kind == "voice" else "video_provider"
     selected = (user.get(setting_key) or "auto").strip().lower()
     if kind == "voice":
         default = ["elevenlabs", "gtts"]
     else:
-        default = ["pexels", "pixabay", "fallback"]
+        default = ["library", "pexels", "pixabay", "fallback"]
 
     if selected == "auto":
         return default
@@ -1518,7 +1552,10 @@ def generar_video_usuario(user: dict) -> str:
             except:
                 pass
 
-            if source == "pexels":
+            if source == "library":
+                print("🎬 Intentando desde biblioteca premium...")
+                ok = _pick_library_video(user, temp_video)
+            elif source == "pexels":
                 print("🎬 Intentando desde Pexels...")
                 ok = _download_pexels_video(tema, _get_pexels_key(user), temp_video)
             elif source == "pixabay":

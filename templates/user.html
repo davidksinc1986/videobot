@@ -6,7 +6,7 @@
   <title>{{ t.user_page_title }} • {{ user.nombre }}</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
-<body>
+<body class="marketing-body">
   <div class="container">
     <div class="topbar">
       <div>
@@ -33,7 +33,7 @@
 
     <div class="grid">
       <!-- LEFT -->
-      <div class="card">
+      <div class="card glass">
         <h2>{{ t.config_general }}</h2>
 
         <form action="/usuario/{{ user.nombre }}/guardar" method="POST">
@@ -164,10 +164,22 @@
             <div style="min-width:200px;">
               <label>{{ t.video_provider }}</label><br/>
               <select name="video_provider" style="width:100%;">
-                {% for k in ['auto','pexels','pixabay','fallback'] %}
+                {% for k in ['auto','library','pexels','pixabay','fallback'] %}
                   <option value="{{ k }}" {% if user.video_provider==k %}selected{% endif %}>{{ k }}</option>
                 {% endfor %}
               </select>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <label class="toggle">
+              <input type="checkbox" name="premium_backgrounds_enabled" {% if user.premium_backgrounds_enabled %}checked{% endif %}/>
+              <span>Fondos premium (video local del usuario)</span>
+            </label>
+            <div style="min-width:320px; flex:1;">
+              <label>Carpeta de fondos premium (opcional)</label><br/>
+              <input class="input" name="premium_backgrounds_dir" value="{{ user.premium_backgrounds_dir }}" style="width:100%;" placeholder="sessions/{{ user.nombre }}/backgrounds"/>
+              <div class="small">Si está vacío, usa por defecto: sessions/{{ user.nombre }}/backgrounds</div>
             </div>
           </div>
 
@@ -376,7 +388,7 @@
       </div>
 
       <!-- RIGHT -->
-      <div class="card">
+      <div class="card glass">
         <h2>{{ t.upload_creds_sessions }}</h2>
 
         {% if user._is_david_legacy %}
@@ -498,7 +510,7 @@
         </p>
 
         {% if user.ultimo_error %}
-          <div class="card" style="background: rgba(255,77,109,0.10); border: 1px solid rgba(255,77,109,0.25);">
+          <div class="card glass" style="background: rgba(255,77,109,0.10); border: 1px solid rgba(255,77,109,0.25);">
             <h2>{{ t.last_error }}</h2>
             <pre style="white-space:pre-wrap; font-size:12px; color:rgba(255,255,255,0.85);">{{ user.ultimo_error }}</pre>
           </div>
