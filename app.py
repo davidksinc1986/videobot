@@ -135,7 +135,7 @@ TRANSLATIONS = {
         "yt_auth": "Método de Auth YouTube",
         "yt_legacy": "Legacy (token.pickle global)",
         "yt_token_upload": "Token Upload (por usuario)",
-        "yt_oauth_web": "OAuth Web (Próximamente)",
+        "yt_oauth_web": "Login por navegador (Próximamente)",
         "yt_token_hint": "Si usas 'token_upload', sube tu archivo token.pickle en el panel derecho.",
 
         "tt_backend": "TikTok Backend",
@@ -179,6 +179,53 @@ TRANSLATIONS = {
         "error": "Detalle Error",
         "ok": "EXITOSO",
         "fail": "FALLIDO",
+        "help": "Guía",
+        "welcome_excited": "¡Bienvenid@! 🚀",
+        "welcome_tabs_hint": "En estos tabs está toda tu configuración para crear y publicar más rápido.",
+        "hero_user_title": "Tu estudio de automatización está listo",
+        "hero_user_subtitle": "Configura IA, subidas y redes en un solo lugar con flujo claro por pestañas.",
+        "tab_profile": "Perfil",
+        "tab_content": "Contenido",
+        "tab_youtube": "YouTube",
+        "tab_tiktok": "TikTok",
+        "tab_instagram": "Instagram",
+        "tab_facebook": "Facebook",
+        "content_files_title": "Textos base (máx 3)",
+        "content_files_desc": "Sube archivos con ideas/guiones. Puedes reemplazar o borrar versiones.",
+        "replace_existing": "Reemplazar existentes",
+        "upload_file": "Subir archivo",
+        "no_files_uploaded": "Sin archivos cargados.",
+        "premium_bg_title": "Fondos premium",
+        "allowance_current": "Allowance actual",
+        "enable_premium_bg": "Activar fondos premium",
+        "allowance_editable": "Allowance editable",
+        "upload_premium_bg": "Subir fondo premium",
+        "no_premium_uploaded": "Sin fondos premium cargados.",
+        "api_mode_hint": "Si eliges backend API, pega credenciales o carga token desde archivo.",
+        "session_upload": "Subida de sesión/credencial",
+        "yt_upload_desc": "Sube token.pickle cuando uses Token Upload en YouTube.",
+        "social_upload_desc": "Sube cookies.json o storage_state.json para esta red cuando uses automatización web.",
+        "stats_panel": "Resumen de actividad",
+        "stats_desc": "Aquí ves progreso, estado de subidas y últimas confirmaciones.",
+        "videos_today_label": "Videos hoy",
+        "daily_limit_label": "Límite diario",
+        "last_update": "Última actualización",
+        "upload_status_title": "Estado de subidas",
+        "details": "Detalle",
+        "api_help_title": "Cómo obtener API keys y secretos",
+        "api_help_body": "Pexels/Pixabay: crea cuenta > API. ElevenLabs/OpenAI: crea API key desde dashboard. TikTok/Meta: crea app de desarrollador, configura permisos de publicación y genera tokens.",
+        "ai_help_title": "Guía rápida de IA",
+        "ai_help_body": "Voz: gTTS (gratis), ElevenLabs (calidad), OpenAI/Azure/Coqui (alternativas). Video: Pixabay/Pexels (stock), Library (local), Runway/Pika (experimental).",
+        "target_seconds_label": "Duración objetivo (20-45s)",
+        "password_keep_hint": "Contraseña (vacío = no cambiar)",
+        "tenant_id_label": "Tenant ID",
+        "plan_label": "Plan",
+        "plan_starter": "starter",
+        "plan_growth": "growth",
+        "plan_scale": "scale",
+        "confirm_replace_limit": "Ya llegaste al límite. ¿Deseas reemplazar existentes?",
+        "confirm_add_version": "Ya hay archivos cargados. ¿Quieres agregar otra versión?",
+        "confirm_replace_premium": "Ya llegaste al allowance premium. ¿Reemplazar actuales?",
         "none": "Ninguno",
     },
     "en": {
@@ -251,7 +298,7 @@ TRANSLATIONS = {
         "yt_auth": "YouTube Auth Method",
         "yt_legacy": "Legacy (global token.pickle)",
         "yt_token_upload": "Token Upload (per user)",
-        "yt_oauth_web": "OAuth Web (Coming Soon)",
+        "yt_oauth_web": "Browser login (Coming Soon)",
         "yt_token_hint": "If using 'token_upload', upload the token.pickle file in the right panel.",
 
         "tt_backend": "TikTok Backend",
@@ -295,6 +342,53 @@ TRANSLATIONS = {
         "error": "Error Details",
         "ok": "SUCCESS",
         "fail": "FAILED",
+        "help": "Guide",
+        "welcome_excited": "Welcome! 🚀",
+        "welcome_tabs_hint": "These tabs contain all your configuration to create and publish faster.",
+        "hero_user_title": "Your automation studio is ready",
+        "hero_user_subtitle": "Configure AI, uploads and platforms in one place with a clear tab flow.",
+        "tab_profile": "Profile",
+        "tab_content": "Content",
+        "tab_youtube": "YouTube",
+        "tab_tiktok": "TikTok",
+        "tab_instagram": "Instagram",
+        "tab_facebook": "Facebook",
+        "content_files_title": "Base texts (max 3)",
+        "content_files_desc": "Upload idea/script files. You can replace or delete versions.",
+        "replace_existing": "Replace existing",
+        "upload_file": "Upload file",
+        "no_files_uploaded": "No files uploaded.",
+        "premium_bg_title": "Premium backgrounds",
+        "allowance_current": "Current allowance",
+        "enable_premium_bg": "Enable premium backgrounds",
+        "allowance_editable": "Editable allowance",
+        "upload_premium_bg": "Upload premium background",
+        "no_premium_uploaded": "No premium backgrounds uploaded.",
+        "api_mode_hint": "If you choose API backend, paste credentials or load token from file.",
+        "session_upload": "Session/credential upload",
+        "yt_upload_desc": "Upload token.pickle when using YouTube Token Upload mode.",
+        "social_upload_desc": "Upload cookies.json or storage_state.json for this platform when using web automation.",
+        "stats_panel": "Activity summary",
+        "stats_desc": "Here you can see progress, upload statuses and latest confirmations.",
+        "videos_today_label": "Videos today",
+        "daily_limit_label": "Daily limit",
+        "last_update": "Last update",
+        "upload_status_title": "Upload status",
+        "details": "Details",
+        "api_help_title": "How to get API keys and secrets",
+        "api_help_body": "Pexels/Pixabay: create account > API. ElevenLabs/OpenAI: create API key from dashboard. TikTok/Meta: create developer app, set publishing permissions and generate tokens.",
+        "ai_help_title": "Quick AI guide",
+        "ai_help_body": "Voice: gTTS (free), ElevenLabs (quality), OpenAI/Azure/Coqui (alternatives). Video: Pixabay/Pexels (stock), Library (local), Runway/Pika (experimental).",
+        "target_seconds_label": "Target duration (20-45s)",
+        "password_keep_hint": "Password (empty = keep current)",
+        "tenant_id_label": "Tenant ID",
+        "plan_label": "Plan",
+        "plan_starter": "starter",
+        "plan_growth": "growth",
+        "plan_scale": "scale",
+        "confirm_replace_limit": "You reached the limit. Replace existing files?",
+        "confirm_add_version": "Files already exist. Add another version?",
+        "confirm_replace_premium": "You reached premium allowance. Replace current files?",
         "none": "None",
     }
 }
@@ -330,6 +424,26 @@ PT_OVERRIDES = {
     "voice_provider": "Provedor de voz",
     "video_provider": "Provedor de vídeo",
     "script_provider": "Provedor de roteiro IA",
+    "welcome_excited": "Bem-vindo(a)! 🚀",
+    "welcome_tabs_hint": "Nestas abas está toda a sua configuração para criar e publicar mais rápido.",
+    "hero_user_title": "Seu estúdio de automação está pronto",
+    "hero_user_subtitle": "Configure IA, uploads e redes em um só lugar com fluxo claro por abas.",
+    "tab_profile": "Perfil",
+    "tab_content": "Conteúdo",
+    "stats_panel": "Resumo de atividade",
+    "stats_desc": "Veja progresso, status de uploads e últimas confirmações.",
+    "upload_status_title": "Status de uploads",
+    "session_upload": "Upload de sessão/credencial",
+    "target_seconds_label": "Duração alvo (20-45s)",
+    "password_keep_hint": "Senha (vazio = manter)",
+    "tenant_id_label": "Tenant ID",
+    "plan_label": "Plano",
+    "plan_starter": "starter",
+    "plan_growth": "growth",
+    "plan_scale": "scale",
+    "confirm_replace_limit": "Você chegou ao limite. Deseja substituir os existentes?",
+    "confirm_add_version": "Já existem arquivos. Deseja adicionar outra versão?",
+    "confirm_replace_premium": "Você chegou ao limite premium. Substituir os arquivos atuais?",
 }
 TRANSLATIONS["pt"] = {**TRANSLATIONS["en"], **PT_OVERRIDES}
 
@@ -484,6 +598,47 @@ def platform_dir(nombre: str, plataforma: str) -> str:
     p = os.path.join(user_data_dir(nombre), plataforma)
     os.makedirs(p, exist_ok=True)
     return p
+
+
+def content_sources_dir(nombre: str) -> str:
+    p = os.path.join(user_data_dir(nombre), "content_sources")
+    os.makedirs(p, exist_ok=True)
+    return p
+
+
+def premium_backgrounds_dir(nombre: str) -> str:
+    p = os.path.join(user_data_dir(nombre), "premium_backgrounds")
+    os.makedirs(p, exist_ok=True)
+    return p
+
+
+def _list_uploaded_files(path: str) -> list[str]:
+    if not os.path.isdir(path):
+        return []
+    files = []
+    for fn in sorted(os.listdir(path)):
+        full = os.path.join(path, fn)
+        if os.path.isfile(full):
+            files.append(fn)
+    return files
+
+
+def _save_uploaded_file(file_obj, dest_dir: str, replace: bool = False) -> str:
+    filename = _safe_name(getattr(file_obj, "filename", "") or "")
+    if not filename:
+        raise ValueError("Archivo inválido")
+
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, filename)
+    if os.path.exists(dest_path) and not replace:
+        raise FileExistsError(filename)
+
+    file_obj.save(dest_path)
+    try:
+        os.chmod(dest_path, 0o600)
+    except Exception:
+        pass
+    return filename
 
 
 def load_user(nombre: str) -> dict:
@@ -662,6 +817,7 @@ def ensure_defaults(user: dict) -> dict:
         "video_provider": "pixabay",
         "premium_backgrounds_enabled": False,
         "premium_backgrounds_dir": "",
+        "premium_backgrounds_allowance": 0,
         "script_provider": "local",
         "email": "",
         "password_hash": "",
@@ -1175,9 +1331,9 @@ def crear():
         "idioma": idioma if idioma in ("es", "en", "pt") else "es",
         "target_seconds": max(20, min(45, target_seconds)),
         "content_source": _pick_allowed(request.form.get("content_source", "ai"), ["ai", "file"], "ai"),
-        "content_file_path": request.form.get("content_file_path", "").strip(),
-        "voice_provider": _pick_allowed(request.form.get("voice_provider", "gtts"), ["auto", "elevenlabs", "gtts"], "gtts"),
-        "video_provider": _pick_allowed(request.form.get("video_provider", "pixabay"), ["auto", "library", "pexels", "pixabay", "fallback"], "pixabay"),
+        "content_file_path": "",
+        "voice_provider": _pick_allowed(request.form.get("voice_provider", "gtts"), ["auto", "elevenlabs", "gtts", "openai_tts", "azure_tts", "coqui_tts"], "gtts"),
+        "video_provider": _pick_allowed(request.form.get("video_provider", "pixabay"), ["auto", "library", "pexels", "pixabay", "fallback", "pika", "runway", "mixkit"], "pixabay"),
         "script_provider": _pick_allowed(request.form.get("script_provider", "local"), ["local", "openai"], "local"),
         "email": email_login,
         "password_hash": generate_password_hash(raw_pw),
@@ -1185,6 +1341,17 @@ def crear():
 
     if not os.path.exists(user_path(nombre)):
         save_user(user)
+
+    content_file = request.files.get("content_file")
+    if content_file and content_file.filename:
+        try:
+            saved = _save_uploaded_file(content_file, content_sources_dir(nombre), replace=True)
+            user = ensure_defaults(load_user(nombre))
+            user["content_source"] = "file"
+            user["content_file_path"] = f"sessions/{nombre}/content_sources/{saved}"
+            save_user(user)
+        except Exception:
+            pass
 
     return redirect("/")
 
@@ -1216,6 +1383,8 @@ def usuario(nombre):
 
     user["_is_david_legacy"] = is_admin_legacy_user(user)
     user["_user_sessions_dir"] = user_data_dir(user["nombre"])
+    user["_content_source_files"] = _list_uploaded_files(content_sources_dir(user["nombre"]))
+    user["_premium_background_files"] = _list_uploaded_files(premium_backgrounds_dir(user["nombre"]))
     nichos = list_nichos()
 
     return render_template(
@@ -1247,11 +1416,15 @@ def usuario_guardar(nombre):
     user["hook_final"] = request.form.get("hook_final", user.get("hook_final", "Suscríbete para más 🔥")).strip()
     user["content_source"] = _pick_allowed(request.form.get("content_source", user.get("content_source", "ai")), ["ai", "file"], "ai")
     user["content_file_path"] = request.form.get("content_file_path", user.get("content_file_path", "")).strip()
-    user["voice_provider"] = _pick_allowed(request.form.get("voice_provider", user.get("voice_provider", "gtts")), ["auto", "elevenlabs", "gtts"], "gtts")
-    user["video_provider"] = _pick_allowed(request.form.get("video_provider", user.get("video_provider", "pixabay")), ["auto", "library", "pexels", "pixabay", "fallback"], "pixabay")
+    user["voice_provider"] = _pick_allowed(request.form.get("voice_provider", user.get("voice_provider", "gtts")), ["auto", "elevenlabs", "gtts", "openai_tts", "azure_tts", "coqui_tts"], "gtts")
+    user["video_provider"] = _pick_allowed(request.form.get("video_provider", user.get("video_provider", "pixabay")), ["auto", "library", "pexels", "pixabay", "fallback", "pika", "runway", "mixkit"], "pixabay")
     user["script_provider"] = _pick_allowed(request.form.get("script_provider", user.get("script_provider", "local")), ["local", "openai"], "local")
     user["premium_backgrounds_enabled"] = bool(request.form.get("premium_backgrounds_enabled"))
     user["premium_backgrounds_dir"] = request.form.get("premium_backgrounds_dir", user.get("premium_backgrounds_dir", "")).strip()
+    try:
+        user["premium_backgrounds_allowance"] = max(0, int(request.form.get("premium_backgrounds_allowance", user.get("premium_backgrounds_allowance", 0)) or 0))
+    except Exception:
+        user["premium_backgrounds_allowance"] = max(0, int(user.get("premium_backgrounds_allowance", 0) or 0))
     user["email"] = _coerce_email(request.form.get("email", user.get("email", "")))
     new_pw = request.form.get("password", "").strip()
     if new_pw:
@@ -1409,6 +1582,103 @@ def usuario_upload_archivo(nombre, plataforma):
     except:
         pass
 
+    return redirect(f"/usuario/{nombre}")
+
+
+@app.route("/usuario/<nombre>/upload/content-source", methods=["POST"])
+@login_required
+def usuario_upload_content_source(nombre):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    user = ensure_defaults(load_user(nombre))
+
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return redirect(f"/usuario/{nombre}")
+
+    replace = bool(request.form.get("replace_existing"))
+    files = _list_uploaded_files(content_sources_dir(nombre))
+    if len(files) >= 3 and not replace:
+        return redirect(f"/usuario/{nombre}")
+
+    try:
+        if replace:
+            for old in files:
+                try:
+                    os.remove(os.path.join(content_sources_dir(nombre), old))
+                except Exception:
+                    pass
+        saved = _save_uploaded_file(f, content_sources_dir(nombre), replace=replace)
+        user["content_source"] = "file"
+        user["content_file_path"] = f"sessions/{nombre}/content_sources/{saved}"
+        save_user(user)
+    except Exception:
+        pass
+
+    return redirect(f"/usuario/{nombre}")
+
+
+@app.route("/usuario/<nombre>/delete/content-source/<filename>", methods=["POST"])
+@login_required
+def usuario_delete_content_source(nombre, filename):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    filename = _safe_name(filename)
+    if filename:
+        try:
+            os.remove(os.path.join(content_sources_dir(nombre), filename))
+        except Exception:
+            pass
+    return redirect(f"/usuario/{nombre}")
+
+
+@app.route("/usuario/<nombre>/upload/premium-background", methods=["POST"])
+@login_required
+def usuario_upload_premium_background(nombre):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    user = ensure_defaults(load_user(nombre))
+
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return redirect(f"/usuario/{nombre}")
+
+    allowance = int(user.get("premium_backgrounds_allowance", 0) or 0)
+    files = _list_uploaded_files(premium_backgrounds_dir(nombre))
+    replace = bool(request.form.get("replace_existing"))
+    if allowance > 0 and len(files) >= allowance and not replace:
+        return redirect(f"/usuario/{nombre}")
+
+    try:
+        if replace:
+            for old in files:
+                try:
+                    os.remove(os.path.join(premium_backgrounds_dir(nombre), old))
+                except Exception:
+                    pass
+        _save_uploaded_file(f, premium_backgrounds_dir(nombre), replace=replace)
+        user["premium_backgrounds_dir"] = f"sessions/{nombre}/premium_backgrounds"
+        save_user(user)
+    except Exception:
+        pass
+    return redirect(f"/usuario/{nombre}")
+
+
+@app.route("/usuario/<nombre>/delete/premium-background/<filename>", methods=["POST"])
+@login_required
+def usuario_delete_premium_background(nombre, filename):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    filename = _safe_name(filename)
+    if filename:
+        try:
+            os.remove(os.path.join(premium_backgrounds_dir(nombre), filename))
+        except Exception:
+            pass
     return redirect(f"/usuario/{nombre}")
 
 

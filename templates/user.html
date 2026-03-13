@@ -11,513 +11,224 @@
     <div class="topbar">
       <div>
         <p class="h1">{{ t.user_page_title }}: {{ user.nombre }}</p>
-        <p class="sub">Config + platforms + credentials</p>
+        <p class="sub">{{ t.get('welcome_excited','¡Bienvenid@! 🚀') }} {{ t.get('welcome_tabs_hint','En estos tabs está toda tu configuración para crear y publicar más rápido.') }}</p>
       </div>
-
       <div class="row">
-        <span class="badge">
-          <span class="dot"></span>
-          {{ t.language }}:
-          <b>{% if lang=='es' %}{{ t.spanish }}{% elif lang=='pt' %}{{ t.portuguese }}{% else %}{{ t.english }}{% endif %}</b>
-        </span>
-
+        <span class="badge"><span class="dot"></span>{{ t.language }}: <b>{% if lang=='es' %}{{ t.spanish }}{% elif lang=='pt' %}{{ t.portuguese }}{% else %}{{ t.english }}{% endif %}</b></span>
         {% set next_url = request.full_path if request.full_path else '/' %}
         <a class="btn ghost" href="/set-lang/es?next={{ next_url|urlencode }}">{{ t.get('switch_to_es','ES') }}</a>
         <a class="btn ghost" href="/set-lang/en?next={{ next_url|urlencode }}">{{ t.get('switch_to_en','EN') }}</a>
         <a class="btn ghost" href="/set-lang/pt?next={{ next_url|urlencode }}">{{ t.get('switch_to_pt','PT') }}</a>
-
-        <span class="badge"><span class="dot pink"></span>{{ auth.role }}</span><a class="btn ghost" href="/logout">{{ t.logout if t.logout else "Salir" }}</a><a class="btn ghost" href="/">{{ t.back }}</a>
+        <a class="btn ghost" href="/logout">{{ t.logout if t.logout else "Salir" }}</a>
+        <a class="btn ghost" href="/">{{ t.back }}</a>
         <a class="btn" href="/generar/{{ user.nombre }}">🎬 {{ t.generate }}</a>
       </div>
     </div>
 
-    <div class="grid">
-      <!-- LEFT -->
+    <section class="card glass hero-strip enhanced-hero">
+      <div>
+        <h2>{{ t.get('hero_user_title','¡Tu estudio está listo para despegar!') }}</h2>
+        <p class="sub">{{ t.get('hero_user_subtitle','Configura IA, subidas y redes en un solo lugar, paso a paso.') }}</p>
+      </div>
+      <div class="hero-mini-grid">
+        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?auto=format&fit=crop&w=900&q=80')"></div>
+        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=900&q=80')"></div>
+        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?auto=format&fit=crop&w=900&q=80')"></div>
+      </div>
+    </section>
+
+    <div class="grid user-layout-grid">
       <div class="card glass">
-        <h2>{{ t.config_general }}</h2>
-
         <form action="/usuario/{{ user.nombre }}/guardar" method="POST">
-          <div class="row">
-            <div style="min-width:240px;">
-              <label>{{ t.niche }}</label><br/>
-              <select name="nicho" style="width:100%;">
-                {% for k in nichos %}
-                  <option value="{{ k }}" {% if user.nicho == k %}selected{% endif %}>
-                    {{ k.replace("_", " ").title() }}
-                  </option>
-                {% endfor %}
-              </select>
+          <div class="tabs-nav">
+            <button type="button" class="tab-btn active" data-tab="perfil">{{ t.tab_profile }}</button>
+            <button type="button" class="tab-btn" data-tab="contenido">{{ t.tab_content }}</button>
+            <button type="button" class="tab-btn" data-tab="youtube">{{ t.tab_youtube }}</button>
+            <button type="button" class="tab-btn" data-tab="tiktok">{{ t.tab_tiktok }}</button>
+            <button type="button" class="tab-btn" data-tab="instagram">{{ t.tab_instagram }}</button>
+            <button type="button" class="tab-btn" data-tab="facebook">{{ t.tab_facebook }}</button>
+          </div>
+
+          <div class="tab-panel active" id="tab-perfil">
+            <div class="form-row-group">
+              <div class="form-field"><label>{{ t.niche }}</label><select name="nicho">{% for k in nichos %}<option value="{{ k }}" {% if user.nicho == k %}selected{% endif %}>{{ k.replace('_', ' ').title() }}</option>{% endfor %}</select></div>
+              <div class="form-field"><label>{{ t.user_language }}</label><select name="idioma"><option value="es" {% if user.idioma=='es' %}selected{% endif %}>es</option><option value="en" {% if user.idioma=='en' %}selected{% endif %}>en</option><option value="pt" {% if user.idioma=='pt' %}selected{% endif %}>pt</option></select></div>
+              <div class="form-field"><label>{{ t.interval_min }}</label><input class="input" name="intervalo_minutos" value="{{ user.intervalo_minutos }}" /></div>
+              <div class="form-field"><label>{{ t.max_per_day }}</label><input class="input" name="max_videos_dia" value="{{ user.max_videos_dia }}" /></div>
+              <div class="form-field"><label>{{ t.get('target_seconds_label','Duración objetivo (20-45s)') }}</label><input class="input" type="number" min="20" max="45" name="target_seconds" value="{{ user.target_seconds }}" /></div>
+            </div>
+            <div class="form-row-group">
+              <div class="form-field"><label>{{ t.email }}</label><input class="input" name="email" value="{{ user.email }}" /></div>
+              <div class="form-field"><label>{{ t.get('password_keep_hint', t.password ~ ' (vacío = no cambiar)') }}</label><input class="input" type="password" name="password" value="" /></div>
+              <div class="form-field"><label>{{ t.window_start }}</label><input class="input" name="ventana_inicio" value="{{ user.ventana_inicio }}" /></div>
+              <div class="form-field"><label>{{ t.window_end }}</label><input class="input" name="ventana_fin" value="{{ user.ventana_fin }}" /></div>
+              <div class="form-field"><label>{{ t.final_hook }}</label><input class="input" name="hook_final" value="{{ user.hook_final }}" /></div>
+            </div>
+            <div class="form-row-group">
+              <label class="toggle"><input type="checkbox" name="activo_scheduler" {% if user.activo_scheduler %}checked{% endif %}/><span>{{ t.scheduler_active }}</span></label>
+              <label class="toggle"><input type="checkbox" name="continuar_si_falla" {% if user.continuar_si_falla %}checked{% endif %}/><span>{{ t.continue_if_fail }}</span></label>
+            </div>
+            {% if auth.role=="superuser" %}
+            <div class="form-row-group">
+              <div class="form-field"><label>{{ t.get('tenant_id_label','Tenant ID') }}</label><input class="input" name="tenant_id" value="{{ user.tenant_id }}" /></div>
+              <div class="form-field"><label>{{ t.get('plan_label','Plan') }}</label><select name="plan"><option value="starter" {% if user.plan=='starter' %}selected{% endif %} >{{ t.get('plan_starter','starter') }}</option><option value="growth" {% if user.plan=='growth' %}selected{% endif %} >{{ t.get('plan_growth','growth') }}</option><option value="scale" {% if user.plan=='scale' %}selected{% endif %} >{{ t.get('plan_scale','scale') }}</option></select></div>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="tab-panel" id="tab-contenido">
+            <div class="form-row-group">
+              <div class="form-field"><label>{{ t.content_source }}</label><select name="content_source"><option value="ai" {% if user.content_source=='ai' %}selected{% endif %}>{{ t.content_ai }}</option><option value="file" {% if user.content_source=='file' %}selected{% endif %}>{{ t.content_file }}</option></select></div>
+              <div class="form-field"><label>{{ t.voice_provider }}</label><select name="voice_provider"><option value="gtts" {% if user.voice_provider=='gtts' %}selected{% endif %}>gtts</option><option value="elevenlabs" {% if user.voice_provider=='elevenlabs' %}selected{% endif %}>elevenlabs</option><option value="openai_tts" {% if user.voice_provider=='openai_tts' %}selected{% endif %}>openai_tts</option><option value="azure_tts" {% if user.voice_provider=='azure_tts' %}selected{% endif %}>azure_tts</option><option value="coqui_tts" {% if user.voice_provider=='coqui_tts' %}selected{% endif %}>coqui_tts</option><option value="auto" {% if user.voice_provider=='auto' %}selected{% endif %}>auto</option></select></div>
+              <div class="form-field"><label>{{ t.video_provider }}</label><select name="video_provider"><option value="pixabay" {% if user.video_provider=='pixabay' %}selected{% endif %}>pixabay</option><option value="pexels" {% if user.video_provider=='pexels' %}selected{% endif %}>pexels</option><option value="library" {% if user.video_provider=='library' %}selected{% endif %}>library</option><option value="runway" {% if user.video_provider=='runway' %}selected{% endif %}>runway</option><option value="pika" {% if user.video_provider=='pika' %}selected{% endif %}>pika</option><option value="mixkit" {% if user.video_provider=='mixkit' %}selected{% endif %}>mixkit</option><option value="fallback" {% if user.video_provider=='fallback' %}selected{% endif %}>fallback</option></select></div>
+              <div class="form-field"><label>{{ t.script_provider }}</label><select name="script_provider"><option value="local" {% if user.script_provider=='local' %}selected{% endif %}>local</option><option value="openai" {% if user.script_provider=='openai' %}selected{% endif %}>openai</option></select></div>
+              <input type="hidden" name="content_file_path" value="{{ user.content_file_path }}" />
+            </div>
+            <div class="form-row-group"><button type="button" class="btn ghost help-btn" data-title="{{ t.api_help_title }}" data-body="{{ t.api_help_body }}">❓ {{ t.help }}</button><button type="button" class="btn ghost help-btn" data-title="{{ t.ai_help_title }}" data-body="{{ t.ai_help_body }}">🤖 IA {{ t.help }}</button></div>
+
+            <div class="upload-box">
+              <h3>{{ t.content_files_title }}</h3>
+              <p class="small">{{ t.content_files_desc }}</p>
+              <form action="/usuario/{{ user.nombre }}/upload/content-source" method="POST" enctype="multipart/form-data" class="inline-upload" onsubmit="return checkReplace(this, {{ user._content_source_files|length }}, 3)">
+                <input class="input" type="file" name="file" accept=".txt,.md,.csv" required>
+                <label class="toggle"><input type="checkbox" name="replace_existing"><span>{{ t.replace_existing }}</span></label>
+                <button class="btn ghost" type="submit">⬆️ {{ t.upload_file }}</button>
+              </form>
+              {% for file in user._content_source_files %}
+              <div class="file-item"><span>{{ file }}</span><form method="POST" action="/usuario/{{ user.nombre }}/delete/content-source/{{ file }}"><button class="btn danger" type="submit">{{ t.delete }}</button></form></div>
+              {% else %}<p class="small">{{ t.no_files_uploaded }}</p>{% endfor %}
             </div>
 
-            <div style="min-width:140px;">
-              <label>{{ t.user_language }}</label><br/>
-              <select name="idioma" style="width:100%;">
-                <option value="es" {% if user.idioma=='es' %}selected{% endif %}>es</option>
-                <option value="en" {% if user.idioma=='en' %}selected{% endif %}>en</option>
-                <option value="pt" {% if user.idioma=='pt' %}selected{% endif %}>pt</option>
-              </select>
-            </div>
-
-            <div style="min-width:160px;">
-              <label>{{ t.interval_min }}</label><br/>
-              <input class="input" name="intervalo_minutos" value="{{ user.intervalo_minutos }}" style="width:100%;" />
-            </div>
-
-            <div style="min-width:160px;">
-              <label>{{ t.max_per_day }}</label><br/>
-              <input class="input" name="max_videos_dia" value="{{ user.max_videos_dia }}" style="width:100%;" />
+            <div class="upload-box">
+              <h3>{{ t.premium_bg_title }}</h3>
+              <p class="small">{{ t.allowance_current }}: <b>{{ user.premium_backgrounds_allowance }}</b></p>
+              <label class="toggle"><input type="checkbox" name="premium_backgrounds_enabled" {% if user.premium_backgrounds_enabled %}checked{% endif %}><span>{{ t.enable_premium_bg }}</span></label>
+              <div class="form-row-group" style="margin-top:10px;">
+                <div class="form-field"><label>{{ t.content_file_path }}</label><input class="input" name="premium_backgrounds_dir" value="{{ user.premium_backgrounds_dir }}" /></div>
+                {% if auth.role=="superuser" %}<div class="form-field"><label>{{ t.allowance_editable }}</label><input class="input" type="number" min="0" name="premium_backgrounds_allowance" value="{{ user.premium_backgrounds_allowance }}" /></div>{% else %}<input type="hidden" name="premium_backgrounds_allowance" value="{{ user.premium_backgrounds_allowance }}" />{% endif %}
+              </div>
+              <form action="/usuario/{{ user.nombre }}/upload/premium-background" method="POST" enctype="multipart/form-data" class="inline-upload" onsubmit="return checkPremiumReplace(this, {{ user._premium_background_files|length }}, {{ user.premium_backgrounds_allowance }})">
+                <input class="input" type="file" name="file" accept=".mp4,.mov,.webm,.jpg,.jpeg,.png" required>
+                <label class="toggle"><input type="checkbox" name="replace_existing"><span>{{ t.replace_existing }}</span></label>
+                <button class="btn ghost" type="submit">⬆️ {{ t.upload_premium_bg }}</button>
+              </form>
+              {% for file in user._premium_background_files %}
+              <div class="file-item"><span>{{ file }}</span><form method="POST" action="/usuario/{{ user.nombre }}/delete/premium-background/{{ file }}"><button class="btn danger" type="submit">{{ t.delete }}</button></form></div>
+              {% else %}<p class="small">{{ t.no_premium_uploaded }}</p>{% endfor %}
             </div>
           </div>
 
-          <div class="row" style="margin-top:10px;">
-            <div style="min-width:160px;">
-              <label>{{ t.window_start }}</label><br/>
-              <input class="input" name="ventana_inicio" value="{{ user.ventana_inicio }}" style="width:100%;" />
-            </div>
-            <div style="min-width:160px;">
-              <label>{{ t.window_end }}</label><br/>
-              <input class="input" name="ventana_fin" value="{{ user.ventana_fin }}" style="width:100%;" />
-            </div>
-            <div style="min-width:260px; flex:1;">
-              <label>{{ t.final_hook }}</label><br/>
-              <input class="input" name="hook_final" value="{{ user.hook_final }}" style="width:100%;" />
-            </div>
-          </div>
+          {% for p in ['youtube','tiktok','instagram','facebook'] %}
+          <div class="tab-panel" id="tab-{{ p }}">
+            <div class="platform-card">
+              <div class="platform-head"><div class="platform-title"><span class="badge"><span class="dot"></span>{{ p|title }}</span></div>
+                <label class="toggle"><input type="checkbox" name="{{ p }}_activo" {% if user[p ~ '_activo'] %}checked{% endif %} {% if auth.role!="superuser" %}disabled{% endif %}><span>{{ t.active }}</span></label>
+              </div>
+              <div class="form-row-group">
+                <div class="form-field"><label>Backend</label><select name="{{ p }}_backend" {% if auth.role!="superuser" %}disabled{% endif %}><option value="api" {% if user[p ~ '_backend']=='api' %}selected{% endif %}>api</option><option value="playwright" {% if user[p ~ '_backend']=='playwright' %}selected{% endif %}>playwright</option><option value="selenium" {% if user[p ~ '_backend']=='selenium' %}selected{% endif %}>selenium</option></select></div>
+                {% if p=='youtube' %}
+                <div class="form-field"><label>{{ t.yt_auth }}</label><select name="youtube_auth_method" {% if auth.role!="superuser" or user._is_david_legacy %}disabled{% endif %}><option value="token_upload" {% if user.youtube_auth_method=='token_upload' %}selected{% endif %}>{{ t.yt_token_upload }}</option><option value="oauth_web" {% if user.youtube_auth_method=='oauth_web' %}selected{% endif %}>{{ t.yt_oauth_web }}</option></select></div>
+                {% endif %}
+              </div>
+              <p class="small">{{ t.api_mode_hint }}</p>
+              <div class="form-row-group">
+                {% if p=='tiktok' %}
+                <div class="form-field"><label>Client Key</label><input class="input" name="tiktok_client_key" value="{{ user.credenciales.tiktok_client_key }}"></div>
+                <div class="form-field"><label>Client Secret</label><input class="input" name="tiktok_client_secret" value="{{ user.credenciales.tiktok_client_secret }}"></div>
+                <div class="form-field"><label>Access Token</label><input class="input" id="tk_token" name="tiktok_access_token" value="{{ user.credenciales.tiktok_access_token }}"></div>
+                <div class="form-field"><label>{{ t.upload_file }}</label><input class="input api-file" type="file" data-target="tk_token" accept=".txt"></div>
+                {% elif p in ['instagram','facebook'] %}
+                <div class="form-field"><label>{{ t.meta_app_id }}</label><input class="input" name="meta_app_id" value="{{ user.credenciales.meta_app_id }}"></div>
+                <div class="form-field"><label>{{ t.meta_app_secret }}</label><input class="input" name="meta_app_secret" value="{{ user.credenciales.meta_app_secret }}"></div>
+                <div class="form-field"><label>{{ t.meta_token }}</label><input class="input" id="meta_token" name="meta_long_lived_token" value="{{ user.credenciales.meta_long_lived_token }}"></div>
+                <div class="form-field"><label>{{ t.upload_file }}</label><input class="input api-file" type="file" data-target="meta_token" accept=".txt"></div>
+                {% endif %}
+              </div>
 
-          <div class="row" style="margin-top:10px;">
-            <div style="min-width:180px;">
-              <label>Duración objetivo (20-45s)</label><br/>
-              <input class="input" type="number" min="20" max="45" name="target_seconds" value="{{ user.target_seconds }}" style="width:100%;" />
-            </div>
-            <div style="min-width:220px;">
-              <label>{{ t.email }}</label><br/>
-              <input class="input" name="email" value="{{ user.email }}" style="width:100%;" />
-            </div>
-            <div style="min-width:220px;">
-              <label>{{ t.password }} (dejar vacío para mantener)</label><br/>
-              <input class="input" type="password" name="password" value="" style="width:100%;" />
-            </div>
-            <div style="min-width:180px;">
-              <label>Avatar modo</label><br/>
-              <select name="avatar_mode" style="width:100%;">
-                {% for k in ['none','photo','ai_sketch'] %}
-                  <option value="{{k}}" {% if user.avatar_mode==k %}selected{% endif %}>{{k}}</option>
-                {% endfor %}
-              </select>
+              <div class="upload-box" style="margin-top:12px;">
+                <h3>{{ t.session_upload }}</h3>
+                <p class="small">{% if p=='youtube' %}{{ t.yt_upload_desc }}{% else %}{{ t.social_upload_desc }}{% endif %}</p>
+                <form action="/usuario/{{ user.nombre }}/upload/{{ p }}" method="POST" enctype="multipart/form-data" class="inline-upload">
+                  <input class="input" type="file" name="file" required />
+                  <button class="btn ghost" type="submit">⬆️ {% if p=='youtube' %}{{ t.upload_to_youtube }}{% elif p=='tiktok' %}{{ t.upload_to_tiktok }}{% elif p=='instagram' %}{{ t.upload_to_instagram }}{% else %}{{ t.upload_to_facebook }}{% endif %}</button>
+                </form>
+              </div>
             </div>
           </div>
-
-          {% if auth.role=="superuser" %}
-          <div class="row" style="margin-top:10px;">
-            <div style="min-width:220px;">
-              <label>Tenant ID</label><br/>
-              <input class="input" name="tenant_id" value="{{ user.tenant_id }}" style="width:100%;" />
-            </div>
-            <div style="min-width:260px;">
-              <label>Plan (controlado por admin)</label><br/>
-              <select name="plan" style="width:100%;">
-                <option value="starter" {% if user.plan=='starter' %}selected{% endif %}>starter: solo YouTube</option>
-                <option value="growth" {% if user.plan=='growth' %}selected{% endif %}>growth: YouTube + TikTok + Instagram</option>
-                <option value="scale" {% if user.plan=='scale' %}selected{% endif %}>scale: todas las redes</option>
-              </select>
-            </div>
-          </div>
-          {% endif %}
-
-          <div class="row" style="margin-top:10px;">
-            <div style="min-width:360px; flex:1;">
-              <label>Prompt boceto IA (opcional)</label><br/>
-              <input class="input" name="avatar_prompt" value="{{ user.avatar_prompt }}" style="width:100%;" />
-            </div>
-          </div>
-          <div class="row" style="margin-top:10px;">
-            <div style="min-width:220px;">
-              <label>{{ t.content_source }}</label><br/>
-              <select name="content_source" style="width:100%;">
-                <option value="ai" {% if user.content_source=='ai' %}selected{% endif %}>{{ t.content_ai }}</option>
-                <option value="file" {% if user.content_source=='file' %}selected{% endif %}>{{ t.content_file }}</option>
-              </select>
-            </div>
-            <div style="min-width:320px; flex:1;">
-              <label>{{ t.content_file_path }}</label><br/>
-              <input class="input" name="content_file_path" value="{{ user.content_file_path }}" style="width:100%;" placeholder="nichos/motivacion.txt"/>
-              <div class="small">{{ t.content_file_help }}</div>
-            </div>
-            <div style="min-width:180px;">
-              <label>{{ t.script_provider }}</label><br/>
-              <select name="script_provider" style="width:100%;">
-                <option value="local" {% if user.script_provider=='local' %}selected{% endif %}>local</option>
-                <option value="openai" {% if user.script_provider=='openai' %}selected{% endif %}>openai</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:10px;">
-            <div style="min-width:200px;">
-              <label>{{ t.voice_provider }}</label><br/>
-              <select name="voice_provider" style="width:100%;">
-                {% for k in ['auto','elevenlabs','gtts'] %}
-                  <option value="{{ k }}" {% if user.voice_provider==k %}selected{% endif %}>{{ k }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div style="min-width:200px;">
-              <label>{{ t.video_provider }}</label><br/>
-              <select name="video_provider" style="width:100%;">
-                {% for k in ['auto','library','pexels','pixabay','fallback'] %}
-                  <option value="{{ k }}" {% if user.video_provider==k %}selected{% endif %}>{{ k }}</option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:10px;">
-            <label class="toggle">
-              <input type="checkbox" name="premium_backgrounds_enabled" {% if user.premium_backgrounds_enabled %}checked{% endif %}/>
-              <span>Fondos premium (video local del usuario)</span>
-            </label>
-            <div style="min-width:320px; flex:1;">
-              <label>Carpeta de fondos premium (opcional)</label><br/>
-              <input class="input" name="premium_backgrounds_dir" value="{{ user.premium_backgrounds_dir }}" style="width:100%;" placeholder="sessions/{{ user.nombre }}/backgrounds"/>
-              <div class="small">Si está vacío, usa por defecto: sessions/{{ user.nombre }}/backgrounds</div>
-            </div>
-          </div>
+          {% endfor %}
 
           <div class="hr"></div>
-
-          <div class="row">
-            <label class="toggle">
-              <input type="checkbox" name="activo_scheduler" {% if user.activo_scheduler %}checked{% endif %}/>
-              <span>{{ t.scheduler_active }}</span>
-            </label>
-            <label class="toggle">
-              <input type="checkbox" name="continuar_si_falla" {% if user.continuar_si_falla %}checked{% endif %}/>
-              <span>{{ t.continue_if_fail }}</span>
-            </label>
-          </div>
-
-          <div class="hr"></div>
-
-          <h2>{{ t.api_creds_optional }}</h2>
-          <div class="cred-grid">
-            <div class="full">
-              <div class="small">{{ t.api_creds_hint }}</div>
-              <div class="small" style="margin-top:6px;">
-                Gratis: <b>gTTS</b> (sin API key), <b>Pixabay</b> (crear cuenta y pegar API key), <b>Pexels</b> (crear cuenta y pegar API key).<br/>
-                Pago/Freemium: <b>ElevenLabs</b> (crear cuenta, obtener API key y Voice ID), <b>OpenAI</b> (crear API key con billing).<br/>
-                Si no tienes API key de una red social, puedes usar login persistente subiendo cookies/storage_state desde el bloque de sesiones.
-              </div>
-            </div>
-
-            <div>
-              <label>{{ t.pexels_key }}</label><br/>
-              <input class="input" name="pexels_api_key" value="{{ user.credenciales.pexels_api_key }}" style="width:100%;" />
-            </div>
-
-            <div>
-              <label>{{ t.eleven_key }}</label><br/>
-              <input class="input" name="elevenlabs_api_key" value="{{ user.credenciales.elevenlabs_api_key }}" style="width:100%;" />
-            </div>
-
-            <div>
-              <label>{{ t.eleven_voice }}</label><br/>
-              <input class="input" name="eleven_voice_id" value="{{ user.credenciales.eleven_voice_id }}" style="width:100%;" />
-            </div>
-
-            <div>
-              <label>{{ t.openai_key }}</label><br/>
-              <input class="input" name="openai_api_key" value="{{ user.credenciales.openai_api_key }}" style="width:100%;" />
-            </div>
-
-
-            <div>
-              <label>{{ t.pixabay_key }}</label><br/>
-              <input class="input" name="pixabay_api_key" value="{{ user.credenciales.pixabay_api_key }}" style="width:100%;" />
-            </div>
-          </div>
-
-          <div class="hr"></div>
-
-          <h2>{{ t.platforms }}</h2>
-
-          <div class="platform-grid">
-            <!-- YouTube -->
-            <div class="platform-card">
-              <div class="platform-head">
-                <div style="min-width:0;">
-                  <div class="platform-title">
-                    <span class="badge"><span class="dot pink"></span> YouTube</span>
-                  </div>
-                  <div class="platform-meta">Uploader principal • Shorts 9:16</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" name="youtube_activo" {% if user.youtube_activo %}checked{% endif %} {% if auth.role!="superuser" or user.plan not in ['starter','growth','scale'] %}disabled{% endif %}/>
-                  <span>{{ t.active }}</span>
-                </label>
-              </div>
-
-              <div class="platform-controls">
-                <div>
-                  <label>{{ t.yt_backend }}</label><br/>
-                  <select name="youtube_backend" {% if user._is_david_legacy %}disabled{% endif %}>
-                    <option value="api" selected>api</option>
-                  </select>
-
-                  <label style="margin-top:8px; display:inline-block;">{{ t.yt_auth }}</label><br/>
-                  {% if user._is_david_legacy %}
-                    <select name="youtube_auth_method" disabled>
-                      <option value="legacy" selected>{{ t.yt_legacy }}</option>
-                    </select>
-                  {% else %}
-                    <select name="youtube_auth_method" {% if auth.role!="superuser" %}disabled{% endif %}>
-                      <option value="token_upload" {% if user.youtube_auth_method=='token_upload' %}selected{% endif %}>{{ t.yt_token_upload }}</option>
-                      <option value="oauth_web" {% if user.youtube_auth_method=='oauth_web' %}selected{% endif %}>{{ t.yt_oauth_web }}</option>
-                    </select>
-                    <div class="small" style="margin-top:6px;">{{ t.yt_token_hint }}</div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-
-            <!-- TikTok -->
-            <div class="platform-card">
-              <div class="platform-head">
-                <div style="min-width:0;">
-                  <div class="platform-title">
-                    <span class="badge"><span class="dot"></span> TikTok</span>
-                  </div>
-                  <div class="platform-meta">Automatización temporal • Playwright/Selenium</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" name="tiktok_activo" {% if user.tiktok_activo %}checked{% endif %} {% if auth.role!="superuser" or user.plan not in ['growth','scale'] %}disabled{% endif %}/>
-                  <span>{{ t.active }}</span>
-                </label>
-              </div>
-
-              <div class="platform-controls">
-                <div>
-                  <label>{{ t.tt_backend }}</label><br/>
-                  <select name="tiktok_backend" {% if auth.role!="superuser" %}disabled{% endif %}>
-                    <option value="playwright" {% if user.tiktok_backend=='playwright' %}selected{% endif %}>playwright</option>
-                    <option value="selenium" {% if user.tiktok_backend=='selenium' %}selected{% endif %}>selenium</option>
-                    <option value="api" {% if user.tiktok_backend=='api' %}selected{% endif %}>api</option>
-                  </select>
-
-                  <label style="margin-top:8px; display:inline-block;">{{ t.note }}</label><br/>
-                  <div class="small">{{ t.recommended_pw }}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Instagram -->
-            <div class="platform-card">
-              <div class="platform-head">
-                <div style="min-width:0;">
-                  <div class="platform-title">
-                    <span class="badge"><span class="dot egg"></span> Instagram Reels</span>
-                  </div>
-                  <div class="platform-meta">Reels • Automatización temporal</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" name="instagram_activo" {% if user.instagram_activo %}checked{% endif %} {% if auth.role!="superuser" or user.plan not in ['growth','scale'] %}disabled{% endif %}/>
-                  <span>{{ t.active }}</span>
-                </label>
-              </div>
-
-              <div class="platform-controls">
-                <div>
-                  <label>{{ t.ig_backend }}</label><br/>
-                  <select name="instagram_backend" {% if auth.role!="superuser" %}disabled{% endif %}>
-                    <option value="playwright" {% if user.instagram_backend=='playwright' %}selected{% endif %}>playwright</option>
-                    <option value="selenium" {% if user.instagram_backend=='selenium' %}selected{% endif %}>selenium</option>
-                    <option value="api" {% if user.instagram_backend=='api' %}selected{% endif %}>api</option>
-                  </select>
-
-                  <label style="margin-top:8px; display:inline-block;">{{ t.session }}</label><br/>
-                  <div class="small" style="word-break:break-word;">/sessions/{{ user.nombre }}/instagram</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Facebook -->
-            <div class="platform-card">
-              <div class="platform-head">
-                <div style="min-width:0;">
-                  <div class="platform-title">
-                    <span class="badge"><span class="dot"></span> Facebook Reels</span>
-                  </div>
-                  <div class="platform-meta">Reels • Automatización temporal</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" name="facebook_activo" {% if user.facebook_activo %}checked{% endif %} {% if auth.role!="superuser" or user.plan != 'scale' %}disabled{% endif %}/>
-                  <span>{{ t.active }}</span>
-                </label>
-              </div>
-
-              <div class="platform-controls">
-                <div>
-                  <label>{{ t.fb_backend }}</label><br/>
-                  <select name="facebook_backend" {% if auth.role!="superuser" %}disabled{% endif %}>
-                    <option value="playwright" {% if user.facebook_backend=='playwright' %}selected{% endif %}>playwright</option>
-                    <option value="selenium" {% if user.facebook_backend=='selenium' %}selected{% endif %}>selenium</option>
-                    <option value="api" {% if user.facebook_backend=='api' %}selected{% endif %}>api</option>
-                  </select>
-
-                  <label style="margin-top:8px; display:inline-block;">{{ t.session }}</label><br/>
-                  <div class="small" style="word-break:break-word;">/sessions/{{ user.nombre }}/facebook</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="row">
-            <button class="btn blue" type="submit">💾 {{ t.save }}</button>
-          </div>
+          <button class="btn blue" type="submit">💾 {{ t.save }}</button>
         </form>
-
-        {% if auth.role=="superuser" and user.nombre|lower != 'david' %}
-          <div class="row" style="margin-top:10px;">
-            <form action="/usuario/{{ user.nombre }}/eliminar" method="POST"
-                  onsubmit="return confirm('{{ t.delete }} {{user.nombre}}?');" style="margin:0;">
-              <button class="btn danger" type="submit">🗑 {{ t.delete }}</button>
-            </form>
-          </div>
-        {% endif %}
       </div>
 
-      <!-- RIGHT -->
       <div class="card glass">
-        <h2>{{ t.upload_creds_sessions }}</h2>
-
-        {% if user._is_david_legacy %}
-          <p class="small">{{ t.david_legacy_info }}</p>
-        {% else %}
-          <p class="small">{{ t.yt_upload_info }}</p>
-          <form action="/usuario/{{ user.nombre }}/upload/youtube" method="POST" enctype="multipart/form-data">
-            <div class="row">
-              <input class="input" type="file" name="file" />
-              <button class="btn" type="submit">⬆️ {{ t.upload_to_youtube }}</button>
-            </div>
-          </form>
-        {% endif %}
-
-        
-        <div class="hr"></div>
-        <h2>Foto para videos</h2>
-        <p class="small">Sube una foto si quieres videos con tu imagen o estilo boceto IA.</p>
-        <form action="/usuario/{{ user.nombre }}/foto" method="POST" enctype="multipart/form-data">
-          <div class="row">
-            <input class="input" type="file" name="file" accept=".png,.jpg,.jpeg,.webp" />
-            <button class="btn ghost" type="submit">⬆️ Subir foto</button>
-          </div>
-        </form>
-        {% if user.avatar_image_path %}
-          <p class="small">Actual: {{ user.avatar_image_path }}</p>
-        {% endif %}
-
-
-        <div class="hr"></div>
-
-        <p class="small">{{ t.social_upload_info }}</p>
-
-        <form action="/usuario/{{ user.nombre }}/upload/tiktok" method="POST" enctype="multipart/form-data">
-          <div class="row">
-            <input class="input" type="file" name="file" />
-            <button class="btn ghost" type="submit">⬆️ {{ t.upload_to_tiktok }}</button>
-          </div>
-        </form>
-
-        <form action="/usuario/{{ user.nombre }}/upload/instagram" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
-          <div class="row">
-            <input class="input" type="file" name="file" />
-            <button class="btn ghost" type="submit">⬆️ {{ t.upload_to_instagram }}</button>
-          </div>
-        </form>
-
-        <form action="/usuario/{{ user.nombre }}/upload/facebook" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
-          <div class="row">
-            <input class="input" type="file" name="file" />
-            <button class="btn ghost" type="submit">⬆️ {{ t.upload_to_facebook }}</button>
-          </div>
-        </form>
-
-        <!-- ✅ LOGIN + RESET CREDENTIALS -->
-        <div class="hr"></div>
-
-        <h2>{{ t.get('login_start', 'Iniciar login') }}</h2>
-        <p class="small">{{ t.get('login_help', 'Abre el navegador para iniciar sesión y guarda la sesión por usuario.') }}</p>
-
-        <div class="row" style="flex-wrap:wrap; gap:10px;">
-          <form action="/usuario/{{ user.nombre }}/login/tiktok" method="POST" style="margin:0;">
-            <button class="btn" type="submit">🔐 TikTok</button>
-          </form>
-
-          <form action="/usuario/{{ user.nombre }}/login/instagram" method="POST" style="margin:0;">
-            <button class="btn" type="submit">🔐 Instagram</button>
-          </form>
-
-          <form action="/usuario/{{ user.nombre }}/login/facebook" method="POST" style="margin:0;">
-            <button class="btn" type="submit">🔐 Facebook</button>
-          </form>
+        <h2>{{ t.stats_panel }}</h2>
+        <p class="small">{{ t.stats_desc }}</p>
+        <div class="events">
+          <div class="event"><b>{{ t.videos_today_label }}:</b> {{ user.videos_hoy }}</div>
+          <div class="event"><b>{{ t.daily_limit_label }}:</b> {{ user.max_videos_dia }}</div>
+          <div class="event"><b>{{ t.last_run }}:</b> {{ user.ultimo_run if user.ultimo_run else '-' }}</div>
+          <div class="event"><b>{{ t.last_video }}:</b> <span style="word-break:break-word;">{{ user.ultimo_video if user.ultimo_video else '-' }}</span></div>
         </div>
 
         <div class="hr"></div>
-
-        <h2>{{ t.get('reset_creds', 'Eliminar credenciales / sesión') }}</h2>
-        <p class="small">{{ t.get('reset_creds_help', 'Si una sesión expiró o cambiaste contraseña, elimina credenciales y vuelve a iniciar login o sube el token de nuevo.') }}</p>
-
-        <div class="row" style="flex-wrap:wrap; gap:10px;">
-          {% if user.nombre|lower != 'david' %}
-          <form action="/usuario/{{ user.nombre }}/reset/youtube" method="POST"
-                onsubmit="return confirm('¿Eliminar token.pickle de YouTube para {{ user.nombre }}?');"
-                style="margin:0;">
-            <button class="btn danger" type="submit">🧹 YouTube token</button>
-          </form>
-          {% endif %}
-
-          <form action="/usuario/{{ user.nombre }}/reset/tiktok" method="POST"
-                onsubmit="return confirm('¿Eliminar sesión TikTok para {{ user.nombre }}?');"
-                style="margin:0;">
-            <button class="btn danger" type="submit">🧹 TikTok sesión</button>
-          </form>
-
-          <form action="/usuario/{{ user.nombre }}/reset/instagram" method="POST"
-                onsubmit="return confirm('¿Eliminar sesión Instagram para {{ user.nombre }}?');"
-                style="margin:0;">
-            <button class="btn danger" type="submit">🧹 Instagram sesión</button>
-          </form>
-
-          <form action="/usuario/{{ user.nombre }}/reset/facebook" method="POST"
-                onsubmit="return confirm('¿Eliminar sesión Facebook para {{ user.nombre }}?');"
-                style="margin:0;">
-            <button class="btn danger" type="submit">🧹 Facebook sesión</button>
-          </form>
-        </div>
-
-        <div class="hr"></div>
-
-        <h2>{{ t.status }}</h2>
-        <div class="row">
-          <span class="badge"><span class="dot"></span> {{ t.status }}: <b>{{ user.estado }}</b></span>
-          <span class="badge"><span class="dot pink"></span> {{ t.videos_today }}: <b>{{ user.videos_hoy }}/{{ user.max_videos_dia }}</b></span>
-        </div>
-
-        <p class="small" style="margin-top:10px;">
-          {{ t.last_run }}: {{ user.ultimo_run }}<br/>
-          {{ t.last_video }}: {{ user.ultimo_video }}<br/>
-        </p>
-
-        {% if user.ultimo_error %}
-          <div class="card glass" style="background: rgba(255,77,109,0.10); border: 1px solid rgba(255,77,109,0.25);">
-            <h2>{{ t.last_error }}</h2>
-            <pre style="white-space:pre-wrap; font-size:12px; color:rgba(255,255,255,0.85);">{{ user.ultimo_error }}</pre>
+        <h2>{{ t.upload_status_title }}</h2>
+        {% for platform in ['youtube','tiktok','instagram','facebook'] %}
+          {% set st = user.upload_status.get(platform, {}) %}
+          <div class="event">
+            <div class="event-top"><span class="badge"><span class="dot"></span>{{ platform|title }}</span></div>
+            <div class="small">{{ t.result }}: <b>{% if st.ok is sameas true %}{{ t.ok }}{% elif st.ok is sameas false %}{{ t.fail }}{% else %}-{% endif %}</b></div>
+            <div class="small">{{ t.last_update }}: {{ st.at if st.at else '-' }}</div>
+            <div class="small">{{ t.details }}: {{ st.detail if st.detail else '-' }}</div>
           </div>
-        {% endif %}
+        {% endfor %}
       </div>
     </div>
-
   </div>
+
+  <div id="helpModal" class="help-modal" style="display:none;"><div class="help-modal-card"><h3 id="helpTitle"></h3><p id="helpBody"></p><button class="btn" type="button" onclick="closeHelp()">OK</button></div></div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  tabs.forEach(btn => btn.addEventListener('click', () => {
+    tabs.forEach(b => b.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  }));
+
+  function checkReplace(form, currentCount, maxCount) {
+    const replace = form.querySelector('input[name="replace_existing"]').checked;
+    if (currentCount >= maxCount && !replace) return confirm({{ t.get('confirm_replace_limit','Ya llegaste al límite. ¿Deseas reemplazar existentes?')|tojson }});
+    if (currentCount > 0 && !replace) return confirm({{ t.get('confirm_add_version','Ya hay archivos cargados. ¿Quieres agregar otra versión?')|tojson }});
+    return true;
+  }
+
+  function checkPremiumReplace(form, currentCount, allowance) {
+    const replace = form.querySelector('input[name="replace_existing"]').checked;
+    if (allowance > 0 && currentCount >= allowance && !replace) return confirm({{ t.get('confirm_replace_premium','Ya llegaste al allowance premium. ¿Reemplazar actuales?')|tojson }});
+    return true;
+  }
+
+  document.querySelectorAll('.api-file').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      const target = document.getElementById(e.target.dataset.target);
+      if (!file || !target) return;
+      const reader = new FileReader();
+      reader.onload = () => { target.value = String(reader.result || '').trim(); };
+      reader.readAsText(file);
+    });
+  });
+
+  document.querySelectorAll('.help-btn').forEach(btn => btn.addEventListener('click', () => {
+    document.getElementById('helpTitle').textContent = btn.dataset.title;
+    document.getElementById('helpBody').textContent = btn.dataset.body;
+    document.getElementById('helpModal').style.display = 'flex';
+  }));
+  function closeHelp(){ document.getElementById('helpModal').style.display='none'; }
+</script>
 </body>
 </html>
