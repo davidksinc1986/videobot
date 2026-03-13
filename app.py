@@ -8,6 +8,27 @@ import subprocess
 import unicodedata
 from datetime import datetime
 from functools import wraps
+
+
+def _load_local_env(path: str = ".env"):
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip().strip('"').strip("'")
+                if k and k not in os.environ:
+                    os.environ[k] = v
+    except Exception:
+        pass
+
+
+_load_local_env()
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session
@@ -346,7 +367,7 @@ def set_lang(lang):
 # ----------------------------
 
 def _superuser_config() -> dict:
-    email = (os.getenv("SUPERUSER_EMAIL") or "davidksinc").strip().lower()
+    email = (os.getenv("SUPERUSER_EMAIL") or "davidksinc@gmail.com").strip().lower()
     pwd = os.getenv("SUPERUSER_PASSWORD") or "M@davi19!"
     return {"email": email, "password": pwd}
 
@@ -629,12 +650,18 @@ def ensure_defaults(user: dict) -> dict:
         "ventana_fin": "22:00",
 
         "idioma": "es",
+        "tenant_id": "default",
+        "plan": "starter",
         "nicho": valid_nichos[0] if valid_nichos else "motivacion",
+        "target_seconds": 30,
         "hook_final": "Suscríbete para más 🔥",
         "content_source": "ai",
         "content_file_path": "",
+        "speech_history": [],
         "voice_provider": "gtts",
         "video_provider": "pixabay",
+        "premium_backgrounds_enabled": False,
+        "premium_backgrounds_dir": "",
         "script_provider": "local",
         "email": "",
         "password_hash": "",
@@ -724,6 +751,22 @@ def ensure_defaults(user: dict) -> dict:
             pass
 
     return user
+
+
+PLAN_PLATFORM_RULES = {
+    "starter": ["youtube"],
+    "growth": ["youtube", "tiktok", "instagram"],
+    "scale": ["youtube", "tiktok", "instagram", "facebook"],
+}
+
+
+def _pick_plan(raw: str) -> str:
+    p = (raw or "").strip().lower()
+    return p if p in PLAN_PLATFORM_RULES else "starter"
+
+
+def _plan_allowed_platforms(plan: str) -> set[str]:
+    return set(PLAN_PLATFORM_RULES.get(_pick_plan(plan), PLAN_PLATFORM_RULES["starter"]))
 
 
 # ----------------------------
@@ -944,6 +987,7 @@ def run_job_for_user(nombre: str) -> None:
 
         _append_event(user, "generate_start", "Generación de video iniciada")
         out = generar_video_usuario(user)
+        save_user(user)
         video_path = out.get("video_path") if isinstance(out, dict) else str(out)
 
         if not video_path:
@@ -1118,14 +1162,24 @@ def crear():
     if not email_login or not raw_pw:
         abort(400, "Debes definir correo y contraseña para el usuario")
 
+    try:
+        target_seconds = int(request.form.get("target_seconds", 30) or 30)
+    except Exception:
+        target_seconds = 30
+
     user = ensure_defaults({
         "nombre": nombre,
+        "tenant_id": _safe_name(request.form.get("tenant_id", "default")) or "default",
+        "plan": _pick_plan(request.form.get("plan", "starter")),
         "nicho": nicho,
         "idioma": idioma if idioma in ("es", "en", "pt") else "es",
+        "target_seconds": max(20, min(45, target_seconds)),
+        "premium_backgrounds_enabled": bool(request.form.get("premium_backgrounds_enabled")),
+        "premium_backgrounds_dir": request.form.get("premium_backgrounds_dir", "").strip(),
         "content_source": _pick_allowed(request.form.get("content_source", "ai"), ["ai", "file"], "ai"),
         "content_file_path": request.form.get("content_file_path", "").strip(),
         "voice_provider": _pick_allowed(request.form.get("voice_provider", "gtts"), ["auto", "elevenlabs", "gtts"], "gtts"),
-        "video_provider": _pick_allowed(request.form.get("video_provider", "pixabay"), ["auto", "pexels", "pixabay", "fallback"], "pixabay"),
+        "video_provider": _pick_allowed(request.form.get("video_provider", "pixabay"), ["auto", "library", "pexels", "pixabay", "fallback"], "pixabay"),
         "script_provider": _pick_allowed(request.form.get("script_provider", "local"), ["local", "openai"], "local"),
         "email": email_login,
         "password_hash": generate_password_hash(raw_pw),
@@ -1196,8 +1250,10 @@ def usuario_guardar(nombre):
     user["content_source"] = _pick_allowed(request.form.get("content_source", user.get("content_source", "ai")), ["ai", "file"], "ai")
     user["content_file_path"] = request.form.get("content_file_path", user.get("content_file_path", "")).strip()
     user["voice_provider"] = _pick_allowed(request.form.get("voice_provider", user.get("voice_provider", "gtts")), ["auto", "elevenlabs", "gtts"], "gtts")
-    user["video_provider"] = _pick_allowed(request.form.get("video_provider", user.get("video_provider", "pixabay")), ["auto", "pexels", "pixabay", "fallback"], "pixabay")
+    user["video_provider"] = _pick_allowed(request.form.get("video_provider", user.get("video_provider", "pixabay")), ["auto", "library", "pexels", "pixabay", "fallback"], "pixabay")
     user["script_provider"] = _pick_allowed(request.form.get("script_provider", user.get("script_provider", "local")), ["local", "openai"], "local")
+    user["premium_backgrounds_enabled"] = bool(request.form.get("premium_backgrounds_enabled"))
+    user["premium_backgrounds_dir"] = request.form.get("premium_backgrounds_dir", user.get("premium_backgrounds_dir", "")).strip()
     user["email"] = _coerce_email(request.form.get("email", user.get("email", "")))
     new_pw = request.form.get("password", "").strip()
     if new_pw:
@@ -1211,6 +1267,7 @@ def usuario_guardar(nombre):
         except:
             return default
 
+    user["target_seconds"] = max(20, min(45, _int("target_seconds", user.get("target_seconds", 30))))
     user["intervalo_minutos"] = max(5, _int("intervalo_minutos", user.get("intervalo_minutos", 60)))
     user["max_videos_dia"] = max(0, _int("max_videos_dia", user.get("max_videos_dia", 24)))
 
@@ -1221,10 +1278,24 @@ def usuario_guardar(nombre):
     user["continuar_si_falla"] = bool(request.form.get("continuar_si_falla"))
 
     if is_super:
+        user["tenant_id"] = _safe_name(request.form.get("tenant_id", user.get("tenant_id", "default"))) or "default"
+        user["plan"] = _pick_plan(request.form.get("plan", user.get("plan", "starter")))
+
+    if is_super:
         user["youtube_activo"] = bool(request.form.get("youtube_activo"))
         user["tiktok_activo"] = bool(request.form.get("tiktok_activo"))
         user["instagram_activo"] = bool(request.form.get("instagram_activo"))
         user["facebook_activo"] = bool(request.form.get("facebook_activo"))
+
+    allowed = _plan_allowed_platforms(user.get("plan", "starter"))
+    if "youtube" not in allowed:
+        user["youtube_activo"] = False
+    if "tiktok" not in allowed:
+        user["tiktok_activo"] = False
+    if "instagram" not in allowed:
+        user["instagram_activo"] = False
+    if "facebook" not in allowed:
+        user["facebook_activo"] = False
 
     if is_super:
         if is_admin_legacy_user(user):

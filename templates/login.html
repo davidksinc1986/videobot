@@ -1,36 +1,53 @@
 <!doctype html>
-<html lang="es">
+<html lang="{{ 'en' if lang=='en' else 'es' }}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VideoBot Login</title>
+  <title>VideoBot SaaS • Login</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
-<body>
-  <div class="container" style="max-width:640px;">
-    <div class="card">
-      <h2>{{ t.login if t.login else 'Login' }}</h2>
+<body class="marketing-body">
+  <div class="marketing-shell">
+    <section class="hero-panel card glass">
+      <span class="pill">🎬 AI Shorts Engine</span>
+      <h1>Publica Shorts que convierten en ingresos.</h1>
+      <p class="sub">Crea contenido para YouTube, TikTok, Instagram y Facebook con guiones, voz, video y automatización de publicación por plan.</p>
+
+      <div class="showcase-grid">
+        <article class="showcase-item" style="background-image:url('https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=900&q=80')">
+          <span>Growth Social</span>
+        </article>
+        <article class="showcase-item" style="background-image:url('https://images.unsplash.com/photo-1611605698335-8b1569810432?auto=format&fit=crop&w=900&q=80')">
+          <span>Video Marketing</span>
+        </article>
+        <article class="showcase-item" style="background-image:url('https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=900&q=80')">
+          <span>Monetización</span>
+        </article>
+      </div>
+
+      <div class="hero-points">
+        <div>✅ Multiusuario / multitenant</div>
+        <div>✅ Control de planes y redes</div>
+        <div>✅ Duración adaptativa (20s - 45s)</div>
+      </div>
+    </section>
+
+    <section class="login-panel card glass">
+      <h2>{{ t.login if t.login else 'Iniciar sesión' }}</h2>
       <div class="row"><a class="btn ghost" href="/set-lang/es?next=/login">ES</a><a class="btn ghost" href="/set-lang/en?next=/login">EN</a><a class="btn ghost" href="/set-lang/pt?next=/login">PT</a></div>
-      <p class="small">Superuser usa credenciales de entorno. Cada usuario entra con su correo/contraseña asignados.</p>
-      {% if error %}<div class="small" style="color:#ff6b81;">{{ error }}</div>{% endif %}
-      <form action="/login" method="POST">
-        <div class="row">
-          <div style="min-width:240px; flex:1;">
-            <label>{{ t.email if t.email else 'Email' }}</label><br/>
-            <input class="input" name="email" type="email" required style="width:100%;" />
-          </div>
-        </div>
-        <div class="row" style="margin-top:10px;">
-          <div style="min-width:240px; flex:1;">
-            <label>{{ t.password if t.password else 'Password' }}</label><br/>
-            <input class="input" name="password" type="password" required style="width:100%;" />
-          </div>
-        </div>
-        <div class="row" style="margin-top:14px;">
-          <button class="btn blue" type="submit">🔐 Entrar</button>
-        </div>
+      <p class="small">Superuser entra con credenciales de entorno. Los clientes usan su correo y contraseña asignados.</p>
+      {% if error %}<div class="error-box">{{ error }}</div>{% endif %}
+
+      <form action="/login" method="POST" class="login-form">
+        <label>{{ t.email if t.email else 'Correo' }}</label>
+        <input class="input" name="email" type="email" required style="width:100%;" />
+
+        <label style="margin-top:10px;">{{ t.password if t.password else 'Contraseña' }}</label>
+        <input class="input" name="password" type="password" required style="width:100%;" />
+
+        <button class="btn blue" type="submit" style="margin-top:14px; width:100%; justify-content:center;">🔐 Entrar al panel</button>
       </form>
-    </div>
+    </section>
   </div>
 </body>
 </html>
