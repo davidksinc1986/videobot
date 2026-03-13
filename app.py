@@ -135,7 +135,7 @@ TRANSLATIONS = {
         "yt_auth": "Método de Auth YouTube",
         "yt_legacy": "Legacy (token.pickle global)",
         "yt_token_upload": "Token Upload (por usuario)",
-        "yt_oauth_web": "OAuth Web (Próximamente)",
+        "yt_oauth_web": "Login por navegador (Próximamente)",
         "yt_token_hint": "Si usas 'token_upload', sube tu archivo token.pickle en el panel derecho.",
 
         "tt_backend": "TikTok Backend",
@@ -251,7 +251,7 @@ TRANSLATIONS = {
         "yt_auth": "YouTube Auth Method",
         "yt_legacy": "Legacy (global token.pickle)",
         "yt_token_upload": "Token Upload (per user)",
-        "yt_oauth_web": "OAuth Web (Coming Soon)",
+        "yt_oauth_web": "Browser login (Coming Soon)",
         "yt_token_hint": "If using 'token_upload', upload the token.pickle file in the right panel.",
 
         "tt_backend": "TikTok Backend",
@@ -486,6 +486,47 @@ def platform_dir(nombre: str, plataforma: str) -> str:
     return p
 
 
+def content_sources_dir(nombre: str) -> str:
+    p = os.path.join(user_data_dir(nombre), "content_sources")
+    os.makedirs(p, exist_ok=True)
+    return p
+
+
+def premium_backgrounds_dir(nombre: str) -> str:
+    p = os.path.join(user_data_dir(nombre), "premium_backgrounds")
+    os.makedirs(p, exist_ok=True)
+    return p
+
+
+def _list_uploaded_files(path: str) -> list[str]:
+    if not os.path.isdir(path):
+        return []
+    files = []
+    for fn in sorted(os.listdir(path)):
+        full = os.path.join(path, fn)
+        if os.path.isfile(full):
+            files.append(fn)
+    return files
+
+
+def _save_uploaded_file(file_obj, dest_dir: str, replace: bool = False) -> str:
+    filename = _safe_name(getattr(file_obj, "filename", "") or "")
+    if not filename:
+        raise ValueError("Archivo inválido")
+
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, filename)
+    if os.path.exists(dest_path) and not replace:
+        raise FileExistsError(filename)
+
+    file_obj.save(dest_path)
+    try:
+        os.chmod(dest_path, 0o600)
+    except Exception:
+        pass
+    return filename
+
+
 def load_user(nombre: str) -> dict:
     p = user_path(nombre)
     if not os.path.exists(p):
@@ -662,6 +703,7 @@ def ensure_defaults(user: dict) -> dict:
         "video_provider": "pixabay",
         "premium_backgrounds_enabled": False,
         "premium_backgrounds_dir": "",
+        "premium_backgrounds_allowance": 0,
         "script_provider": "local",
         "email": "",
         "password_hash": "",
@@ -1175,7 +1217,7 @@ def crear():
         "idioma": idioma if idioma in ("es", "en", "pt") else "es",
         "target_seconds": max(20, min(45, target_seconds)),
         "content_source": _pick_allowed(request.form.get("content_source", "ai"), ["ai", "file"], "ai"),
-        "content_file_path": request.form.get("content_file_path", "").strip(),
+        "content_file_path": "",
         "voice_provider": _pick_allowed(request.form.get("voice_provider", "gtts"), ["auto", "elevenlabs", "gtts"], "gtts"),
         "video_provider": _pick_allowed(request.form.get("video_provider", "pixabay"), ["auto", "library", "pexels", "pixabay", "fallback"], "pixabay"),
         "script_provider": _pick_allowed(request.form.get("script_provider", "local"), ["local", "openai"], "local"),
@@ -1185,6 +1227,17 @@ def crear():
 
     if not os.path.exists(user_path(nombre)):
         save_user(user)
+
+    content_file = request.files.get("content_file")
+    if content_file and content_file.filename:
+        try:
+            saved = _save_uploaded_file(content_file, content_sources_dir(nombre), replace=True)
+            user = ensure_defaults(load_user(nombre))
+            user["content_source"] = "file"
+            user["content_file_path"] = f"sessions/{nombre}/content_sources/{saved}"
+            save_user(user)
+        except Exception:
+            pass
 
     return redirect("/")
 
@@ -1216,6 +1269,8 @@ def usuario(nombre):
 
     user["_is_david_legacy"] = is_admin_legacy_user(user)
     user["_user_sessions_dir"] = user_data_dir(user["nombre"])
+    user["_content_source_files"] = _list_uploaded_files(content_sources_dir(user["nombre"]))
+    user["_premium_background_files"] = _list_uploaded_files(premium_backgrounds_dir(user["nombre"]))
     nichos = list_nichos()
 
     return render_template(
@@ -1252,6 +1307,10 @@ def usuario_guardar(nombre):
     user["script_provider"] = _pick_allowed(request.form.get("script_provider", user.get("script_provider", "local")), ["local", "openai"], "local")
     user["premium_backgrounds_enabled"] = bool(request.form.get("premium_backgrounds_enabled"))
     user["premium_backgrounds_dir"] = request.form.get("premium_backgrounds_dir", user.get("premium_backgrounds_dir", "")).strip()
+    try:
+        user["premium_backgrounds_allowance"] = max(0, int(request.form.get("premium_backgrounds_allowance", user.get("premium_backgrounds_allowance", 0)) or 0))
+    except Exception:
+        user["premium_backgrounds_allowance"] = max(0, int(user.get("premium_backgrounds_allowance", 0) or 0))
     user["email"] = _coerce_email(request.form.get("email", user.get("email", "")))
     new_pw = request.form.get("password", "").strip()
     if new_pw:
@@ -1409,6 +1468,103 @@ def usuario_upload_archivo(nombre, plataforma):
     except:
         pass
 
+    return redirect(f"/usuario/{nombre}")
+
+
+@app.route("/usuario/<nombre>/upload/content-source", methods=["POST"])
+@login_required
+def usuario_upload_content_source(nombre):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    user = ensure_defaults(load_user(nombre))
+
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return redirect(f"/usuario/{nombre}")
+
+    replace = bool(request.form.get("replace_existing"))
+    files = _list_uploaded_files(content_sources_dir(nombre))
+    if len(files) >= 3 and not replace:
+        return redirect(f"/usuario/{nombre}")
+
+    try:
+        if replace:
+            for old in files:
+                try:
+                    os.remove(os.path.join(content_sources_dir(nombre), old))
+                except Exception:
+                    pass
+        saved = _save_uploaded_file(f, content_sources_dir(nombre), replace=replace)
+        user["content_source"] = "file"
+        user["content_file_path"] = f"sessions/{nombre}/content_sources/{saved}"
+        save_user(user)
+    except Exception:
+        pass
+
+    return redirect(f"/usuario/{nombre}")
+
+
+@app.route("/usuario/<nombre>/delete/content-source/<filename>", methods=["POST"])
+@login_required
+def usuario_delete_content_source(nombre, filename):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    filename = _safe_name(filename)
+    if filename:
+        try:
+            os.remove(os.path.join(content_sources_dir(nombre), filename))
+        except Exception:
+            pass
+    return redirect(f"/usuario/{nombre}")
+
+
+@app.route("/usuario/<nombre>/upload/premium-background", methods=["POST"])
+@login_required
+def usuario_upload_premium_background(nombre):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    user = ensure_defaults(load_user(nombre))
+
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return redirect(f"/usuario/{nombre}")
+
+    allowance = int(user.get("premium_backgrounds_allowance", 0) or 0)
+    files = _list_uploaded_files(premium_backgrounds_dir(nombre))
+    replace = bool(request.form.get("replace_existing"))
+    if allowance > 0 and len(files) >= allowance and not replace:
+        return redirect(f"/usuario/{nombre}")
+
+    try:
+        if replace:
+            for old in files:
+                try:
+                    os.remove(os.path.join(premium_backgrounds_dir(nombre), old))
+                except Exception:
+                    pass
+        _save_uploaded_file(f, premium_backgrounds_dir(nombre), replace=replace)
+        user["premium_backgrounds_dir"] = f"sessions/{nombre}/premium_backgrounds"
+        save_user(user)
+    except Exception:
+        pass
+    return redirect(f"/usuario/{nombre}")
+
+
+@app.route("/usuario/<nombre>/delete/premium-background/<filename>", methods=["POST"])
+@login_required
+def usuario_delete_premium_background(nombre, filename):
+    if not can_access_user(nombre):
+        abort(403, "Sin acceso a este usuario")
+    nombre = _safe_name(nombre)
+    filename = _safe_name(filename)
+    if filename:
+        try:
+            os.remove(os.path.join(premium_backgrounds_dir(nombre), filename))
+        except Exception:
+            pass
     return redirect(f"/usuario/{nombre}")
 
 
