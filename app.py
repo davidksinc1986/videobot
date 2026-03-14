@@ -900,6 +900,12 @@ def ensure_defaults(user: dict) -> dict:
         "content_source": "ai",
         "content_file_path": "",
         "speech_history": [],
+        "generation_learning": {
+            "success": 0,
+            "fail": 0,
+            "last_error": "",
+            "last_success_at": "",
+        },
         "voice_provider": "gtts",
         "video_provider": "pixabay",
         "premium_backgrounds_enabled": False,
@@ -1221,6 +1227,13 @@ def run_job_for_user(nombre: str) -> None:
     try:
         user = ensure_defaults(load_user(nombre))
 
+        missing = _generation_requirements_missing(user)
+        if missing:
+            missing_text = ", ".join(missing)
+            raise RuntimeError(
+                f"Faltan credenciales/configuración para generar video con los proveedores elegidos: {missing_text}"
+            )
+
         user["estado"] = "generando"
         user["ultimo_error"] = ""
         user["ultimo_run"] = _now_str()
@@ -1264,6 +1277,11 @@ def run_job_for_user(nombre: str) -> None:
         user["videos_hoy"] = int(user.get("videos_hoy", 0)) + 1
 
         _append_event(user, "job_done", "Job completado", {"uploads": upload_results})
+        learning = user.get("generation_learning") or {}
+        learning["success"] = int(learning.get("success", 0)) + 1
+        learning["last_success_at"] = _now_str()
+        learning["last_error"] = ""
+        user["generation_learning"] = learning
         save_user(user)
 
     except Exception:
@@ -1275,11 +1293,44 @@ def run_job_for_user(nombre: str) -> None:
             user["ultimo_run"] = _now_str()
             user["last_run_ts"] = int(time.time())
             _append_event(user, "job_error", "Job falló", {"error": tb})
+            learning = user.get("generation_learning") or {}
+            learning["fail"] = int(learning.get("fail", 0)) + 1
+            learning["last_error"] = tb
+            user["generation_learning"] = learning
             save_user(user)
         except:
             pass
     finally:
         release_lock(nombre)
+
+
+def _generation_requirements_missing(user: dict) -> list[str]:
+    missing = []
+    cred = user.get("credenciales", {}) or {}
+
+    voice = (user.get("voice_provider") or "gtts").strip().lower()
+    video = (user.get("video_provider") or "pixabay").strip().lower()
+    script_provider = (user.get("script_provider") or "local").strip().lower()
+    content_source = (user.get("content_source") or "ai").strip().lower()
+
+    if voice == "elevenlabs":
+        if not (cred.get("elevenlabs_api_key") or "").strip():
+            missing.append("elevenlabs_api_key")
+        if not (cred.get("eleven_voice_id") or "").strip():
+            missing.append("eleven_voice_id")
+
+    if video == "pexels" and not (cred.get("pexels_api_key") or "").strip():
+        missing.append("pexels_api_key")
+
+    if video == "pixabay" and not (cred.get("pixabay_api_key") or "").strip():
+        # hay clave por defecto en config, por eso solo warning si no hay user key
+        _append_event(user, "config_warning", "Usando Pixabay API key global por falta de clave por usuario")
+
+    if script_provider == "openai" and content_source != "file":
+        if not (cred.get("openai_api_key") or "").strip():
+            missing.append("openai_api_key")
+
+    return missing
 
 
 def _parse_hhmm(value: str) -> tuple[int, int]:

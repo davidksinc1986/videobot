@@ -111,13 +111,13 @@
             <div class="upload-box">
               <h3>{{ t.content_files_title }}</h3>
               <p class="small">{{ t.content_files_desc }}</p>
-              <form action="/usuario/{{ user.nombre }}/upload/content-source" method="POST" enctype="multipart/form-data" class="inline-upload" onsubmit="return checkReplace(this, {{ user._content_source_files|length }}, 3)">
-                <input class="input" type="file" name="file" accept=".txt,.md,.csv" required>
-                <label class="toggle"><input type="checkbox" name="replace_existing"><span>{{ t.replace_existing }}</span></label>
-                <button class="btn ghost" type="submit">⬆️ {{ t.upload_file }}</button>
-              </form>
+              <div class="inline-upload" onsubmit="return false;">
+                <input class="input js-upload-file" type="file" accept=".txt,.md,.csv" data-upload-endpoint="/usuario/{{ user.nombre }}/upload/content-source">
+                <label class="toggle"><input type="checkbox" class="js-replace-existing"><span>{{ t.replace_existing }}</span></label>
+                <button class="btn ghost" type="button" onclick="uploadContentSource(this)">⬆️ {{ t.upload_file }}</button>
+              </div>
               {% for file in user._content_source_files %}
-              <div class="file-item"><span>{{ file }}</span><form method="POST" action="/usuario/{{ user.nombre }}/delete/content-source/{{ file }}"><button class="btn danger" type="submit">{{ t.delete }}</button></form></div>
+              <div class="file-item"><span>{{ file }}</span><button class="btn danger" type="button" data-delete-endpoint="/usuario/{{ user.nombre }}/delete/content-source/{{ file }}" onclick="postToEndpoint(this.dataset.deleteEndpoint)">{{ t.delete }}</button></div>
               {% else %}<p class="small">{{ t.no_files_uploaded }}</p>{% endfor %}
             </div>
 
@@ -129,13 +129,13 @@
                 <div class="form-field"><label>{{ t.content_file_path }}</label><input class="input" name="premium_backgrounds_dir" value="{{ user.premium_backgrounds_dir }}" /></div>
                 {% if auth.role=="superuser" %}<div class="form-field"><label>{{ t.allowance_editable }}</label><input class="input" type="number" min="0" name="premium_backgrounds_allowance" value="{{ user.premium_backgrounds_allowance }}" /></div>{% else %}<input type="hidden" name="premium_backgrounds_allowance" value="{{ user.premium_backgrounds_allowance }}" />{% endif %}
               </div>
-              <form action="/usuario/{{ user.nombre }}/upload/premium-background" method="POST" enctype="multipart/form-data" class="inline-upload" onsubmit="return checkPremiumReplace(this, {{ user._premium_background_files|length }}, {{ user.premium_backgrounds_allowance }})">
-                <input class="input" type="file" name="file" accept=".mp4,.mov,.webm,.jpg,.jpeg,.png" required>
-                <label class="toggle"><input type="checkbox" name="replace_existing"><span>{{ t.replace_existing }}</span></label>
-                <button class="btn ghost" type="submit">⬆️ {{ t.upload_premium_bg }}</button>
-              </form>
+              <div class="inline-upload" onsubmit="return false;">
+                <input class="input js-upload-file" type="file" accept=".mp4,.mov,.webm,.jpg,.jpeg,.png" data-upload-endpoint="/usuario/{{ user.nombre }}/upload/premium-background">
+                <label class="toggle"><input type="checkbox" class="js-replace-existing"><span>{{ t.replace_existing }}</span></label>
+                <button class="btn ghost" type="button" onclick="uploadPremiumBackground(this)">⬆️ {{ t.upload_premium_bg }}</button>
+              </div>
               {% for file in user._premium_background_files %}
-              <div class="file-item"><span>{{ file }}</span><form method="POST" action="/usuario/{{ user.nombre }}/delete/premium-background/{{ file }}"><button class="btn danger" type="submit">{{ t.delete }}</button></form></div>
+              <div class="file-item"><span>{{ file }}</span><button class="btn danger" type="button" data-delete-endpoint="/usuario/{{ user.nombre }}/delete/premium-background/{{ file }}" onclick="postToEndpoint(this.dataset.deleteEndpoint)">{{ t.delete }}</button></div>
               {% else %}<p class="small">{{ t.no_premium_uploaded }}</p>{% endfor %}
             </div>
           </div>
@@ -170,10 +170,10 @@
               <div class="upload-box" style="margin-top:12px;">
                 <h3>{{ t.session_upload }}</h3>
                 <p class="small">{% if p=='youtube' %}{{ t.yt_upload_desc }}{% else %}{{ t.social_upload_desc }}{% endif %}</p>
-                <form action="/usuario/{{ user.nombre }}/upload/{{ p }}" method="POST" enctype="multipart/form-data" class="inline-upload">
-                  <input class="input" type="file" name="file" required />
-                  <button class="btn ghost" type="submit">⬆️ {% if p=='youtube' %}{{ t.upload_to_youtube }}{% elif p=='tiktok' %}{{ t.upload_to_tiktok }}{% elif p=='instagram' %}{{ t.upload_to_instagram }}{% else %}{{ t.upload_to_facebook }}{% endif %}</button>
-                </form>
+                <div class="inline-upload" onsubmit="return false;">
+                  <input class="input js-upload-file" type="file" data-upload-endpoint="/usuario/{{ user.nombre }}/upload/{{ p }}" />
+                  <button class="btn ghost" type="button" onclick="uploadSessionFile(this)">⬆️ {% if p=='youtube' %}{{ t.upload_to_youtube }}{% elif p=='tiktok' %}{{ t.upload_to_tiktok }}{% elif p=='instagram' %}{{ t.upload_to_instagram }}{% else %}{{ t.upload_to_facebook }}{% endif %}</button>
+                </div>
               </div>
             </div>
           </div>
@@ -222,16 +222,72 @@
   }));
 
   function checkReplace(form, currentCount, maxCount) {
-    const replace = form.querySelector('input[name="replace_existing"]').checked;
+    const replace = !!form.querySelector('.js-replace-existing')?.checked;
     if (currentCount >= maxCount && !replace) return confirm({{ t.get('confirm_replace_limit','Ya llegaste al límite. ¿Deseas reemplazar existentes?')|tojson }});
     if (currentCount > 0 && !replace) return confirm({{ t.get('confirm_add_version','Ya hay archivos cargados. ¿Quieres agregar otra versión?')|tojson }});
     return true;
   }
 
   function checkPremiumReplace(form, currentCount, allowance) {
-    const replace = form.querySelector('input[name="replace_existing"]').checked;
+    const replace = !!form.querySelector('.js-replace-existing')?.checked;
     if (allowance > 0 && currentCount >= allowance && !replace) return confirm({{ t.get('confirm_replace_premium','Ya llegaste al allowance premium. ¿Reemplazar actuales?')|tojson }});
     return true;
+  }
+
+
+  async function postToEndpoint(endpoint){
+    try {
+      const resp = await fetch(endpoint, { method: 'POST' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      window.location.reload();
+    } catch (err) {
+      alert('No se pudo completar la acción: ' + err.message);
+    }
+  }
+
+  async function uploadWithFormData(button, endpoint, withReplace=false){
+    const box = button.closest('.inline-upload');
+    const fileInput = box?.querySelector('.js-upload-file');
+    if (!fileInput || !fileInput.files || !fileInput.files.length) {
+      alert('Selecciona un archivo antes de subir.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    if (withReplace) {
+      const replace = box.querySelector('.js-replace-existing')?.checked;
+      if (replace) formData.append('replace_existing', 'on');
+    }
+
+    try {
+      const resp = await fetch(endpoint, { method: 'POST', body: formData });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      window.location.reload();
+    } catch (err) {
+      alert('No se pudo subir el archivo: ' + err.message);
+    }
+  }
+
+  function uploadContentSource(button){
+    const box = button.closest('.inline-upload');
+    if (!box) return;
+    if (!checkReplace(box, {{ user._content_source_files|length }}, 3)) return;
+    const endpoint = box.querySelector('.js-upload-file')?.dataset.uploadEndpoint;
+    if (endpoint) uploadWithFormData(button, endpoint, true);
+  }
+
+  function uploadPremiumBackground(button){
+    const box = button.closest('.inline-upload');
+    if (!box) return;
+    if (!checkPremiumReplace(box, {{ user._premium_background_files|length }}, {{ user.premium_backgrounds_allowance }})) return;
+    const endpoint = box.querySelector('.js-upload-file')?.dataset.uploadEndpoint;
+    if (endpoint) uploadWithFormData(button, endpoint, true);
+  }
+
+  function uploadSessionFile(button){
+    const endpoint = button.closest('.inline-upload')?.querySelector('.js-upload-file')?.dataset.uploadEndpoint;
+    if (endpoint) uploadWithFormData(button, endpoint, false);
   }
 
   document.querySelectorAll('.api-file').forEach(input => {
