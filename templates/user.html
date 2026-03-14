@@ -25,6 +25,16 @@
       </div>
     </div>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <section class="card glass">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </section>
+      {% endif %}
+    {% endwith %}
+
     <section class="card glass hero-strip enhanced-hero">
       <div>
         <h2>{{ t.get('hero_user_title','¡Tu estudio está listo para despegar!') }}</h2>
@@ -87,6 +97,18 @@
             <div class="form-row-group"><button type="button" class="btn ghost help-btn" data-title="{{ t.api_help_title }}" data-body="{{ t.api_help_body }}">❓ {{ t.help }}</button><button type="button" class="btn ghost help-btn" data-title="{{ t.ai_help_title }}" data-body="{{ t.ai_help_body }}">🤖 IA {{ t.help }}</button></div>
 
             <div class="upload-box">
+              <h3>API Keys de IA y contenido</h3>
+              <p class="small">Si eliges un proveedor que requiera credenciales (ej: ElevenLabs, OpenAI, Pexels/Pixabay), configúralas aquí.</p>
+              <div class="form-row-group">
+                <div class="form-field" data-requires-voice="elevenlabs"><label>{{ t.eleven_key }}</label><input class="input" id="elevenlabs_api_key" name="elevenlabs_api_key" value="{{ user.credenciales.elevenlabs_api_key }}" placeholder="sk_..." /></div>
+                <div class="form-field" data-requires-voice="elevenlabs"><label>{{ t.eleven_voice }}</label><input class="input" name="eleven_voice_id" value="{{ user.credenciales.eleven_voice_id }}" placeholder="voice_id" /></div>
+                <div class="form-field" data-requires-voice="openai_tts" data-requires-script="openai"><label>OpenAI API key</label><input class="input" name="openai_api_key" value="{{ user.credenciales.openai_api_key }}" placeholder="sk-..." /></div>
+                <div class="form-field" data-requires-video="pexels"><label>{{ t.pexels_key }}</label><input class="input" name="pexels_api_key" value="{{ user.credenciales.pexels_api_key }}" placeholder="Pexels key" /></div>
+                <div class="form-field" data-requires-video="pixabay"><label>Pixabay API key</label><input class="input" name="pixabay_api_key" value="{{ user.credenciales.pixabay_api_key }}" placeholder="Pixabay key" /></div>
+              </div>
+            </div>
+
+            <div class="upload-box">
               <h3>{{ t.content_files_title }}</h3>
               <p class="small">{{ t.content_files_desc }}</p>
               <form action="/usuario/{{ user.nombre }}/upload/content-source" method="POST" enctype="multipart/form-data" class="inline-upload" onsubmit="return checkReplace(this, {{ user._content_source_files|length }}, 3)">
@@ -125,7 +147,7 @@
                 <label class="toggle"><input type="checkbox" name="{{ p }}_activo" {% if user[p ~ '_activo'] %}checked{% endif %} {% if auth.role!="superuser" %}disabled{% endif %}><span>{{ t.active }}</span></label>
               </div>
               <div class="form-row-group">
-                <div class="form-field"><label>Backend</label><select name="{{ p }}_backend" {% if auth.role!="superuser" %}disabled{% endif %}><option value="api" {% if user[p ~ '_backend']=='api' %}selected{% endif %}>api</option><option value="playwright" {% if user[p ~ '_backend']=='playwright' %}selected{% endif %}>playwright</option><option value="selenium" {% if user[p ~ '_backend']=='selenium' %}selected{% endif %}>selenium</option></select></div>
+                <div class="form-field"><label>Backend</label><select name="{{ p }}_backend" {% if auth.role!="superuser" %}disabled{% endif %}><option value="auto" {% if user[p ~ '_backend']=='auto' %}selected{% endif %}>auto (playwright → selenium)</option><option value="api" {% if user[p ~ '_backend']=='api' %}selected{% endif %}>api</option><option value="playwright" {% if user[p ~ '_backend']=='playwright' %}selected{% endif %}>playwright</option><option value="selenium" {% if user[p ~ '_backend']=='selenium' %}selected{% endif %}>selenium</option></select></div>
                 {% if p=='youtube' %}
                 <div class="form-field"><label>{{ t.yt_auth }}</label><select name="youtube_auth_method" {% if auth.role!="superuser" or user._is_david_legacy %}disabled{% endif %}><option value="token_upload" {% if user.youtube_auth_method=='token_upload' %}selected{% endif %}>{{ t.yt_token_upload }}</option><option value="oauth_web" {% if user.youtube_auth_method=='oauth_web' %}selected{% endif %}>{{ t.yt_oauth_web }}</option></select></div>
                 {% endif %}
@@ -222,6 +244,28 @@
       reader.readAsText(file);
     });
   });
+
+  function toggleProviderKeys(){
+    const voice = document.querySelector('select[name="voice_provider"]')?.value || '';
+    const video = document.querySelector('select[name="video_provider"]')?.value || '';
+    const script = document.querySelector('select[name="script_provider"]')?.value || '';
+
+    document.querySelectorAll('[data-requires-voice]').forEach(el => {
+      el.style.display = el.dataset.requiresVoice === voice ? '' : 'none';
+    });
+    document.querySelectorAll('[data-requires-video]').forEach(el => {
+      el.style.display = el.dataset.requiresVideo === video ? '' : 'none';
+    });
+    document.querySelectorAll('[data-requires-script]').forEach(el => {
+      el.style.display = el.dataset.requiresScript === script ? '' : 'none';
+    });
+  }
+
+  ['voice_provider','video_provider','script_provider'].forEach(name => {
+    const el = document.querySelector(`select[name="${name}"]`);
+    if (el) el.addEventListener('change', toggleProviderKeys);
+  });
+  toggleProviderKeys();
 
   document.querySelectorAll('.help-btn').forEach(btn => btn.addEventListener('click', () => {
     document.getElementById('helpTitle').textContent = btn.dataset.title;

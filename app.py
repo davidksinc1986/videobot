@@ -31,7 +31,7 @@ def _load_local_env(path: str = ".env"):
 _load_local_env()
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session
+from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session, flash
 
 from config import USUARIOS_DIR, TEMP_DIR, VIDEOS_DIR, APP_PORT
 from generador import generar_video_usuario, NICHOS as NICHOS_DICT
@@ -53,6 +53,10 @@ os.makedirs(SESSIONS_DIR, exist_ok=True)
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.getenv("APP_SECRET_KEY", "change-me-in-production")
+
+SCHEDULER_TICK_SECONDS = 15
+_scheduler_started = False
+_scheduler_lock = threading.Lock()
 
 
 # ----------------------------
@@ -153,6 +157,8 @@ TRANSLATIONS = {
         "session": "Sesión",
 
         "save": "Guardar cambios",
+        "save_ok": "Configuración guardada correctamente.",
+        "save_error": "No se pudo guardar la configuración.",
         "back": "Volver al inicio",
 
         "upload_creds_sessions": "Archivos de Sesión / Credenciales",
@@ -335,6 +341,8 @@ TRANSLATIONS = {
         "session": "Session",
 
         "save": "Save changes",
+        "save_ok": "Settings were saved successfully.",
+        "save_error": "Could not save settings.",
         "back": "Back to home",
 
         "upload_creds_sessions": "Session Files / Credentials",
@@ -445,6 +453,8 @@ PT_OVERRIDES = {
     "generate": "Gerar",
     "delete": "Excluir",
     "save": "Salvar alterações",
+    "save_ok": "Configuração salva com sucesso.",
+    "save_error": "Não foi possível salvar a configuração.",
     "back": "Voltar",
     "status": "Status",
     "language": "Idioma",
@@ -912,9 +922,9 @@ def ensure_defaults(user: dict) -> dict:
         "youtube_auth_method": "legacy",
         "youtube_backend": "api",
 
-        "tiktok_backend": "playwright",
-        "instagram_backend": "playwright",
-        "facebook_backend": "playwright",
+        "tiktok_backend": "auto",
+        "instagram_backend": "auto",
+        "facebook_backend": "auto",
 
         "upload_status": {
             "youtube": {"ok": None, "at": "", "detail": ""},
@@ -1272,6 +1282,75 @@ def run_job_for_user(nombre: str) -> None:
         release_lock(nombre)
 
 
+def _parse_hhmm(value: str) -> tuple[int, int]:
+    try:
+        hh, mm = (value or "08:00").strip().split(":", 1)
+        return int(hh), int(mm)
+    except Exception:
+        return 8, 0
+
+
+def _in_window(start_hm: str, end_hm: str) -> bool:
+    now = datetime.now()
+    sh, sm = _parse_hhmm(start_hm)
+    eh, em = _parse_hhmm(end_hm)
+
+    start = now.replace(hour=sh, minute=sm, second=0, microsecond=0)
+    end = now.replace(hour=eh, minute=em, second=0, microsecond=0)
+
+    if start <= end:
+        return start <= now <= end
+    return now >= start or now <= end
+
+
+def _scheduler_due(user: dict, now_ts: int) -> bool:
+    if not bool(user.get("activo_scheduler", True)):
+        return False
+
+    interval_min = max(5, int(user.get("intervalo_minutos", 60) or 60))
+    last_ts = int(user.get("last_run_ts", 0) or 0)
+    if now_ts - last_ts < interval_min * 60:
+        return False
+
+    max_dia = max(0, int(user.get("max_videos_dia", 24) or 24))
+    videos_hoy = int(user.get("videos_hoy", 0) or 0)
+    if max_dia > 0 and videos_hoy >= max_dia:
+        return False
+
+    return _in_window(user.get("ventana_inicio", "08:00"), user.get("ventana_fin", "22:00"))
+
+
+def scheduler_loop() -> None:
+    while True:
+        try:
+            now_ts = int(time.time())
+            for u in list_users():
+                user = ensure_defaults(u)
+                nombre = _safe_name(user.get("nombre", ""))
+                if not nombre or is_locked(nombre):
+                    continue
+                if _scheduler_due(user, now_ts):
+                    th = threading.Thread(target=run_job_for_user, args=(nombre,), daemon=True)
+                    th.start()
+        except Exception:
+            pass
+        time.sleep(SCHEDULER_TICK_SECONDS)
+
+
+def start_scheduler_once() -> None:
+    global _scheduler_started
+    if _scheduler_started:
+        return
+    with _scheduler_lock:
+        if _scheduler_started:
+            return
+        th = threading.Thread(target=scheduler_loop, daemon=True, name="videobot-scheduler")
+        th.start()
+        _scheduler_started = True
+
+
+
+
 # ----------------------------
 # Routes
 # ----------------------------
@@ -1336,6 +1415,7 @@ def health():
 @app.route("/")
 @login_required
 def home():
+    start_scheduler_once()
     lang = get_lang()
     auth = current_auth()
     usuarios = [ensure_defaults(u) for u in list_users()]
@@ -1557,9 +1637,9 @@ def usuario_guardar(nombre):
             ).strip()
 
         user["youtube_backend"] = request.form.get("youtube_backend", user.get("youtube_backend", "api")).strip()
-        user["tiktok_backend"] = request.form.get("tiktok_backend", user.get("tiktok_backend", "playwright")).strip()
-        user["instagram_backend"] = request.form.get("instagram_backend", user.get("instagram_backend", "playwright")).strip()
-        user["facebook_backend"] = request.form.get("facebook_backend", user.get("facebook_backend", "playwright")).strip()
+        user["tiktok_backend"] = request.form.get("tiktok_backend", user.get("tiktok_backend", "auto")).strip()
+        user["instagram_backend"] = request.form.get("instagram_backend", user.get("instagram_backend", "auto")).strip()
+        user["facebook_backend"] = request.form.get("facebook_backend", user.get("facebook_backend", "auto")).strip()
 
     cred = user.get("credenciales", {}) or {}
     cred["pexels_api_key"] = request.form.get("pexels_api_key", cred.get("pexels_api_key", "")).strip()
@@ -1581,7 +1661,11 @@ def usuario_guardar(nombre):
 
     user["credenciales"] = cred
     _append_event(user, "config", "Configuración guardada")
-    save_user(user)
+    try:
+        save_user(user)
+        flash(tr().get("save_ok", "Configuración guardada correctamente."), "success")
+    except Exception:
+        flash(tr().get("save_error", "No se pudo guardar la configuración."), "error")
 
     return redirect(f"/usuario/{user['nombre']}")
 
@@ -1777,25 +1861,35 @@ def usuario_login(nombre, plataforma):
 
     user_cfg = ensure_defaults(load_user(nombre))
     backend_key = f"{plataforma}_backend"
-    backend = (user_cfg.get(backend_key) or "playwright").strip().lower()
-    script_name = "social_login_selenium.py" if backend == "selenium" else "social_login.py"
-    script = os.path.join(BASE_DIR, script_name)
-    if not os.path.exists(script):
-        abort(500, f"Falta {script_name}")
+    backend = (user_cfg.get(backend_key) or "auto").strip().lower()
+    candidates = [backend] if backend in ("playwright", "selenium") else ["playwright", "selenium"]
 
-    try:
-        subprocess.Popen(
-            ["python3", script, "--user", nombre, "--platform", plataforma],
-            cwd=BASE_DIR,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+    started = False
+    last_error = ""
+    for candidate in candidates:
+        script_name = "social_login.py" if candidate == "playwright" else "social_login_selenium.py"
+        script = os.path.join(BASE_DIR, script_name)
+        if not os.path.exists(script):
+            last_error = f"Falta {script_name}"
+            continue
+        try:
+            subprocess.Popen(
+                ["python3", script, "--user", nombre, "--platform", plataforma],
+                cwd=BASE_DIR,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            user = ensure_defaults(load_user(nombre))
+            _append_event(user, "login_start", f"Login iniciado: {plataforma} ({candidate})")
+            save_user(user)
+            started = True
+            break
+        except Exception as e:
+            last_error = str(e)
+
+    if not started:
         user = ensure_defaults(load_user(nombre))
-        _append_event(user, "login_start", f"Login iniciado: {plataforma}")
-        save_user(user)
-    except Exception as e:
-        user = ensure_defaults(load_user(nombre))
-        _append_event(user, "login_error", f"Login no pudo iniciar: {plataforma}", {"error": str(e)})
+        _append_event(user, "login_error", f"Login no pudo iniciar: {plataforma}", {"error": last_error or "sin backend disponible"})
         save_user(user)
 
     return redirect(f"/usuario/{nombre}")
@@ -1870,6 +1964,7 @@ def api_usuarios():
 
 
 if __name__ == "__main__":
+    start_scheduler_once()
     print("✅ Flask usando templates en:", os.path.abspath("templates"))
     print("✅ Static en:", os.path.abspath("static"))
     print("✅ Sessions dir:", SESSIONS_DIR)

@@ -163,24 +163,26 @@
       {% if not usuarios %}
       <p class="small">{{ t.no_users_yet }}</p>
       {% else %}
-        <div class="table">
-          <div class="thead">
-            <div>{{ t.user }}</div>
-            <div>{{ t.tenant_plan }}</div>
-            <div>{{ t.niche }}</div>
-            <div>{{ t.status }}</div>
-            <div>{{ t.last_video }}</div>
-            <div>{{ t.today }}</div>
-            <div>{{ t.actions }}</div>
-          </div>
+      <div class="table">
+        <div class="thead">
+          <div>{{ t.user }}</div>
+          <div>{{ t.tenant_plan }}</div>
+          <div>{{ t.niche }}</div>
+          <div>{{ t.status }}</div>
+          <div>{{ t.last_video }}</div>
+          <div>{{ t.today }}</div>
+          <div>{{ t.actions }}</div>
+        </div>
 
-          {% for u in usuarios %}
+        {% for u in usuarios %}
           <div class="trow user-entry">
             <div class="user-info">
               <div class="badge"><span class="dot pink"></span> <b>{{ u.nombre }}</b></div>
+              <div class="small">ID: <code>{{ u.nombre }}</code></div>
               <div class="small scheduler-info">
                 {{ t.scheduler }}: {{ 'ON' if u.activo_scheduler else 'OFF' }} · {{ t.interval }}: {{ u.intervalo_minutos }}m
               </div>
+              <div class="small scheduler-info">Último run: {{ u.ultimo_run if u.ultimo_run else '-' }}</div>
 
               {% if u.ultimo_error %}
                 <div class="small error-message">
@@ -212,7 +214,6 @@
               {% endif %}
             </div>
           </div>
-        </div>
         {% endfor %}
       </div>
       {% endif %}
