@@ -1102,3 +1102,257 @@ margin-top: var(--spacing-sm);
 @media (max-width: 900px) {
   .tabs-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* --- Mobile-first polish for user profile editor --- */
+.user-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.tabs-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tab-btn {
+  min-height: 44px;
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.form-row-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.form-field {
+  min-width: 0;
+}
+
+.wizard-controls {
+  position: sticky;
+  bottom: 8px;
+  background: rgba(5, 15, 20, 0.88);
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+}
+
+@media (min-width: 760px) {
+  .tabs-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .form-row-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .user-layout-grid { grid-template-columns: 1.35fr .95fr; }
+  .form-row-group { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* === Snake Mafia V2: turquoise + purple + black, mobile first === */
+:root {
+  --sm-black: #06040c;
+  --sm-black-2: #100a1f;
+  --sm-turq: #39efd2;
+  --sm-turq-soft: #89fff0;
+  --sm-purple: #8b4cff;
+  --sm-purple-soft: #b78cff;
+}
+
+.marketing-body {
+  background:
+    radial-gradient(1000px 600px at 8% 4%, rgba(57,239,210,.20), transparent 50%),
+    radial-gradient(1000px 650px at 92% 8%, rgba(139,76,255,.24), transparent 54%),
+    linear-gradient(145deg, var(--sm-black) 0%, var(--sm-black-2) 46%, #04030a 100%);
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.brand-lockup.compact h2,
+.brand-lockup.compact .h1 { margin: 0; }
+
+.brand-lockup .brand-logo { width: 210px; max-width: 100%; height: auto; }
+.brand-lockup .brand-logo.small { width: 170px; }
+
+.snake-banner {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(137, 255, 240, 0.35);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(120deg, rgba(57,239,210,.09), rgba(139,76,255,.16));
+}
+
+.snake-social-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-around;
+  opacity: .18;
+  font-size: 11px;
+  text-transform: uppercase;
+  animation: socialFloat 9s linear infinite;
+}
+
+.snake-banner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 8px;
+}
+
+.snake-loader-track {
+  position: relative;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(183,140,255,.4);
+  background: rgba(2, 12, 20, 0.75);
+}
+
+.snake-loader-line {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 6px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sm-turq), var(--sm-purple));
+  opacity: .8;
+}
+
+.snake-loader-head {
+  position: absolute;
+  top: -6px;
+  left: 0;
+  animation: snakeMove 2.8s ease-in-out infinite;
+}
+
+.tech-cards-grid {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+
+.tech-card {
+  border: 1px solid rgba(137,255,240,.26);
+  border-radius: 12px;
+  padding: 10px;
+  background: linear-gradient(160deg, rgba(10, 34, 42, 0.85), rgba(24, 12, 45, 0.75));
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.tech-card.social { border-color: rgba(183, 140, 255, 0.45); }
+
+.tech-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--sm-turq), var(--sm-purple));
+  color: #09051a;
+}
+
+.tech-card h4 { margin: 2px 0 4px; }
+.tech-card p { margin: 0; font-size: 12px; color: rgba(233,243,255,.83); }
+
+.login-panel,
+.login-upgrade-hero {
+  border: 1px solid rgba(137, 255, 240, .25);
+  background: linear-gradient(160deg, rgba(11, 24, 35, .88), rgba(24, 11, 38, .86));
+}
+
+/* Mobile first stack: cards one below another */
+.login-upgrade-shell,
+.marketing-shell.login-upgrade-shell {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  gap: 14px;
+  padding: 14px 10px 20px;
+}
+
+.hero-panel h1 {
+  font-size: clamp(1.9rem, 9vw, 3.2rem);
+  line-height: 1.06;
+  word-break: break-word;
+}
+
+@media (min-width: 960px) {
+  .login-upgrade-shell,
+  .marketing-shell.login-upgrade-shell { grid-template-columns: 1.15fr .9fr; gap: 22px; padding: 28px 18px; }
+  .tech-cards-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@keyframes snakeMove {
+  0% { left: 4px; }
+  50% { left: calc(100% - 22px); }
+  100% { left: 4px; }
+}
+
+@keyframes socialFloat {
+  from { transform: translateX(0); }
+  to { transform: translateX(-24px); }
+}
+
+/* Admin branding manager */
+.branding-manager-card {
+  margin-top: 12px;
+}
+
+.branding-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.branding-item {
+  border: 1px solid rgba(137,255,240,.24);
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  background: rgba(12, 18, 32, 0.65);
+}
+
+.branding-preview-wrap {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(183, 140, 255, 0.35);
+  background: rgba(0,0,0,.3);
+}
+
+.branding-preview {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+#preview-brand_logo {
+  object-fit: contain;
+  background: #070511;
+}
+
+@media (min-width: 780px) {
+  .branding-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
