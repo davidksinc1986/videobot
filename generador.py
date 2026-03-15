@@ -1800,7 +1800,11 @@ def generar_video_usuario(user: dict) -> str:
             final_audio = audio
             if audio.duration < target_dur:
                 silence_dur = target_dur - audio.duration
-                silence = AudioClip(lambda t: 0, duration=silence_dur).set_fps(44100)
+                silence = AudioClip(lambda t: 0, duration=silence_dur)
+                if hasattr(silence, "set_fps"):
+                    silence = silence.set_fps(44100)
+                elif hasattr(silence, "with_fps"):
+                    silence = silence.with_fps(44100)
                 final_audio = concatenate_audioclips([audio, silence])
 
             if clip.duration < final_audio.duration:
