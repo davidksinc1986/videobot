@@ -15,13 +15,12 @@ try:
     )
 except ImportError:
     # Fallback para MoviePy 2.x+
-    from moviepy.video.io.VideoFileClip import VideoFileClip
-    from moviepy.audio.io.AudioFileClip import AudioFileClip
-    from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
-    from moviepy.video.VideoClip import ImageClip, ColorClip, AudioClip
-    from moviepy.video.compositing.concatenate import concatenate_videoclips
-    from moviepy.audio.compositing.concatenate import concatenate_audioclips
-    import moviepy.video.fx.all as vfx
+    from moviepy import (
+        VideoFileClip, AudioFileClip, CompositeVideoClip,
+        ImageClip, ColorClip, AudioClip,
+        concatenate_videoclips, concatenate_audioclips,
+        vfx,
+    )
 
 from gtts import gTTS
 from voz_elevenlabs import generar_audio, QuotaExceededError

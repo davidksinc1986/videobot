@@ -873,6 +873,7 @@ def ensure_defaults(user: dict) -> dict:
 
         "ventana_inicio": "08:00",
         "ventana_fin": "22:00",
+        "schedule_mode": "always",
 
         "idioma": "es",
         "tenant_id": "default",
@@ -923,6 +924,7 @@ def ensure_defaults(user: dict) -> dict:
         },
 
         "events": [],
+        "title_counter": 0,
 
         "credenciales": {
             "pexels_api_key": "",
@@ -945,6 +947,14 @@ def ensure_defaults(user: dict) -> dict:
     }
 
     changed = False
+
+    # Compat legacy: algunos payloads históricos usan frecuencia_minutos
+    if "intervalo_minutos" not in user and "frecuencia_minutos" in user:
+        try:
+            user["intervalo_minutos"] = max(5, int(user.get("frecuencia_minutos") or 60))
+        except Exception:
+            user["intervalo_minutos"] = 60
+        changed = True
 
     for k, v in defaults.items():
         if k not in user:
@@ -1143,7 +1153,7 @@ def _call_social_uploader(module_name: str, func_candidates: list[str], video_pa
 
 def run_uploads_for_user(user: dict, video_path: str) -> dict:
     results = {}
-    titulo = f"{user.get('nicho','video')}-{user.get('nombre','user')}-{int(time.time())}"
+    titulo = _next_video_title(user)
 
     def do_platform(name: str, active: bool, runner):
         if not active:
@@ -1258,6 +1268,7 @@ def run_job_for_user(nombre: str) -> None:
             user["videos_hoy_fecha"] = today
             user["videos_hoy"] = 0
         user["videos_hoy"] = int(user.get("videos_hoy", 0)) + 1
+        user["title_counter"] = int(user.get("title_counter", 0) or 0) + 1
 
         _append_event(user, "job_done", "Job completado", {"uploads": upload_results})
         learning = user.get("generation_learning") or {}
@@ -1337,6 +1348,25 @@ def _in_window(start_hm: str, end_hm: str) -> bool:
     return now >= start or now <= end
 
 
+def _next_video_title(user: dict) -> str:
+    """
+    Título estilo marketing con secuencia persistente por usuario.
+    Ejemplo: "Consejo de Liderazgo por David #12"
+    """
+    sequence = max(1, int(user.get("title_counter", 0) or 0) + 1)
+    niche_raw = (user.get("nicho") or "contenido").replace("_", " ").strip().lower()
+    niche_map = {
+        "liderazgo": "Consejo de Liderazgo",
+        "motivacion": "Impulso de Motivación",
+        "dinero": "Tip de Dinero Inteligente",
+        "psicologia": "Idea de Psicología Práctica",
+        "relaciones": "Consejo de Relaciones",
+    }
+    base = niche_map.get(niche_raw, f"Tip de {niche_raw.title()}")
+    creator = (user.get("nombre") or "Creator").strip().title()
+    return f"{base} por {creator} #{sequence}"
+
+
 def _scheduler_due(user: dict, now_ts: int) -> bool:
     if not bool(user.get("activo_scheduler", True)):
         return False
@@ -1350,6 +1380,10 @@ def _scheduler_due(user: dict, now_ts: int) -> bool:
     videos_hoy = int(user.get("videos_hoy", 0) or 0)
     if max_dia > 0 and videos_hoy >= max_dia:
         return False
+
+    schedule_mode = (user.get("schedule_mode") or "always").strip().lower()
+    if schedule_mode == "always":
+        return True
 
     return _in_window(user.get("ventana_inicio", "08:00"), user.get("ventana_fin", "22:00"))
 
@@ -1381,6 +1415,11 @@ def start_scheduler_once() -> None:
         th = threading.Thread(target=scheduler_loop, daemon=True, name="videobot-scheduler")
         th.start()
         _scheduler_started = True
+
+
+@app.before_request
+def _ensure_scheduler_running():
+    start_scheduler_once()
 
 
 
@@ -1637,6 +1676,7 @@ def usuario_guardar(nombre):
 
     user["ventana_inicio"] = request.form.get("ventana_inicio", user.get("ventana_inicio", "08:00")).strip()
     user["ventana_fin"] = request.form.get("ventana_fin", user.get("ventana_fin", "22:00")).strip()
+    user["schedule_mode"] = _pick_allowed(request.form.get("schedule_mode", user.get("schedule_mode", "always")), ["always", "window"], "always")
 
     user["activo_scheduler"] = bool(request.form.get("activo_scheduler"))
     user["continuar_si_falla"] = bool(request.form.get("continuar_si_falla"))
