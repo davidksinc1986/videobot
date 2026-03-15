@@ -1662,11 +1662,10 @@ def usuario_guardar(nombre):
         user["tenant_id"] = _safe_name(request.form.get("tenant_id", user.get("tenant_id", "default"))) or "default"
         user["plan"] = _pick_plan(request.form.get("plan", user.get("plan", "starter")))
 
-    if is_super:
-        user["youtube_activo"] = bool(request.form.get("youtube_activo"))
-        user["tiktok_activo"] = bool(request.form.get("tiktok_activo"))
-        user["instagram_activo"] = bool(request.form.get("instagram_activo"))
-        user["facebook_activo"] = bool(request.form.get("facebook_activo"))
+    user["youtube_activo"] = bool(request.form.get("youtube_activo"))
+    user["tiktok_activo"] = bool(request.form.get("tiktok_activo"))
+    user["instagram_activo"] = bool(request.form.get("instagram_activo"))
+    user["facebook_activo"] = bool(request.form.get("facebook_activo"))
 
     allowed = _plan_allowed_platforms(user.get("plan", "starter"))
     if "youtube" not in allowed:
@@ -1678,19 +1677,20 @@ def usuario_guardar(nombre):
     if "facebook" not in allowed:
         user["facebook_activo"] = False
 
-    if is_super:
-        if is_admin_legacy_user(user):
-            user["youtube_auth_method"] = "legacy"
-        else:
-            user["youtube_auth_method"] = request.form.get(
-                "youtube_auth_method",
-                user.get("youtube_auth_method", "token_upload")
-            ).strip()
+    if is_admin_legacy_user(user):
+        user["youtube_auth_method"] = "legacy"
+    else:
+        user["youtube_auth_method"] = _pick_allowed(
+            request.form.get("youtube_auth_method", user.get("youtube_auth_method", "token_upload")),
+            ["legacy", "token_upload", "oauth_web"],
+            "token_upload"
+        )
 
-        user["youtube_backend"] = request.form.get("youtube_backend", user.get("youtube_backend", "api")).strip()
-        user["tiktok_backend"] = request.form.get("tiktok_backend", user.get("tiktok_backend", "auto")).strip()
-        user["instagram_backend"] = request.form.get("instagram_backend", user.get("instagram_backend", "auto")).strip()
-        user["facebook_backend"] = request.form.get("facebook_backend", user.get("facebook_backend", "auto")).strip()
+    allowed_backends = ["auto", "api", "playwright", "selenium"]
+    user["youtube_backend"] = _pick_allowed(request.form.get("youtube_backend", user.get("youtube_backend", "api")), allowed_backends, "api")
+    user["tiktok_backend"] = _pick_allowed(request.form.get("tiktok_backend", user.get("tiktok_backend", "auto")), allowed_backends, "auto")
+    user["instagram_backend"] = _pick_allowed(request.form.get("instagram_backend", user.get("instagram_backend", "auto")), allowed_backends, "auto")
+    user["facebook_backend"] = _pick_allowed(request.form.get("facebook_backend", user.get("facebook_backend", "auto")), allowed_backends, "auto")
 
     cred = user.get("credenciales", {}) or {}
     cred["pexels_api_key"] = request.form.get("pexels_api_key", cred.get("pexels_api_key", "")).strip()

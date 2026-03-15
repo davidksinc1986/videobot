@@ -909,3 +909,131 @@ margin-top: var(--spacing-sm);
   font-size: 11px;
   color: var(--text-muted);
 }
+
+/* === 2026 Turquoise mobile-first refresh === */
+:root {
+  --turq-50: #e6fffb;
+  --turq-100: #baf7ee;
+  --turq-300: #56decf;
+  --turq-500: #10b6a8;
+  --turq-700: #0b7f78;
+  --turq-900: #064f4b;
+}
+
+.marketing-body {
+  background:
+    radial-gradient(900px 460px at 10% 5%, rgba(16,182,168,.30), transparent 52%),
+    radial-gradient(900px 460px at 90% 10%, rgba(86,222,207,.20), transparent 58%),
+    linear-gradient(150deg, #031918 0%, #082a2a 45%, #021110 100%);
+}
+
+.container {
+  max-width: 1120px;
+  padding: 16px 12px 40px;
+}
+
+.card,
+.glass {
+  border: 1px solid rgba(86, 222, 207, .25);
+  background: linear-gradient(180deg, rgba(10,55,52,.82), rgba(5,33,31,.86));
+}
+
+.btn {
+  background: linear-gradient(135deg, var(--turq-300), var(--turq-100));
+  color: #032422;
+  box-shadow: 0 8px 20px rgba(16, 182, 168, .25);
+}
+
+.btn.blue {
+  background: linear-gradient(135deg, var(--turq-500), var(--turq-300));
+}
+
+.btn.ghost {
+  color: var(--turq-50);
+  border-color: rgba(186,247,238,.35);
+  background: rgba(7, 51, 47, .6);
+}
+
+.topbar,
+.topbar-actions,
+.row,
+.form-row-group {
+  gap: 10px;
+}
+
+.form-field {
+  min-width: 100%;
+}
+
+.input, select {
+  width: 100%;
+  min-width: 100%;
+  border-color: rgba(86,222,207,.35);
+  background: rgba(3, 31, 29, .85);
+}
+
+.users-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.user-list-card {
+  border: 1px solid rgba(86,222,207,.28);
+  border-radius: 16px;
+  background: rgba(5, 43, 41, .72);
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.user-list-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.user-list-head .small { margin: 6px 0 0; }
+
+.user-list-grid {
+  display: grid;
+  gap: 8px;
+}
+.user-list-grid p {
+  margin: 0;
+  font-size: 13px;
+}
+.user-list-grid .full { grid-column: 1 / -1; }
+
+.truncate-line {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.error-message {
+  color: #ff9fb5;
+}
+
+.action-group {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.quick-actions-stack {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 760px) {
+  .container { padding: 24px 18px 50px; }
+  .form-field { min-width: 220px; }
+  .user-list-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .top-cards-grid { grid-template-columns: 1.3fr .9fr; }
+}
+
+@media (min-width: 1024px) {
+  .container { padding: 28px 24px 60px; }
+  .users-list { gap: 14px; }
+}
