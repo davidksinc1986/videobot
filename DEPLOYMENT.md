@@ -41,8 +41,8 @@ cd /opt/videobot
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip
-pip install flask gunicorn requests moviepy gtts playwright selenium webdriver-manager werkzeug
-mkdir -p usuarios videos temp sessions
+pip install -r requirements.txt
+mkdir -p /opt/videobot-data
 ```
 
 ## 6) Variables de entorno (superuser y seguridad)
@@ -56,6 +56,7 @@ APP_PORT=5000
 APP_SECRET_KEY=CAMBIA_ESTA_CLAVE_SUPER_LARGA_Y_ALEATORIA
 SUPERUSER_EMAIL=davidksinc
 SUPERUSER_PASSWORD=M@davi19!
+VIDEOBOT_DATA_DIR=/opt/videobot-data
 ```
 
 ## 7) Crear servicio web (systemd)
@@ -152,7 +153,12 @@ sudo certbot --nginx -d TU_DOMINIO.com
   - user: `davidksinc`
   - pass: `M@davi19!`
 
-## 14) Flujo multi-tenant recomendado
+## 14) Persistencia de datos (anti pérdida en git pull)
+- `VIDEOBOT_DATA_DIR` guarda SQLite, videos, temp y usuarios fuera del repo.
+- El backend migra automáticamente `usuarios/*.json` heredados a SQLite al iniciar.
+- Puedes hacer `git pull` sin borrar progreso, métricas ni configuración.
+
+## 15) Flujo multi-tenant recomendado
 1. Entra como superuser.
 2. Crea usuario tenant (email + password).
 3. Deja defaults gratuitos (gTTS + Pixabay).
@@ -160,7 +166,7 @@ sudo certbot --nginx -d TU_DOMINIO.com
 5. Habilita/deshabilita redes por tenant desde superuser.
 6. Tenant inicia sesión y solo puede editar su propio perfil/config.
 
-## 15) Comandos útiles de soporte
+## 16) Comandos útiles de soporte
 ```bash
 journalctl -u videobot-web -f
 journalctl -u videobot-scheduler -f

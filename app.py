@@ -1,5 +1,4 @@
 import os
-import json
 import time
 import traceback
 import threading
@@ -34,6 +33,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session, flash
 
 from config import USUARIOS_DIR, TEMP_DIR, VIDEOS_DIR, APP_PORT
+from storage import init_db, migrate_json_users_if_needed, load_user as db_load_user, save_user as db_save_user, list_users as db_list_users, user_exists, delete_user
 from generador import generar_video_usuario, NICHOS as NICHOS_DICT
 
 
@@ -53,6 +53,10 @@ os.makedirs(SESSIONS_DIR, exist_ok=True)
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.getenv("APP_SECRET_KEY", "change-me-in-production")
+init_db()
+_migrated = migrate_json_users_if_needed()
+if _migrated:
+    print(f"✅ Migrados {_migrated} usuarios JSON a SQLite")
 
 SCHEDULER_TICK_SECONDS = 15
 _scheduler_started = False
@@ -720,36 +724,15 @@ def _save_uploaded_file(file_obj, dest_dir: str, replace: bool = False) -> str:
 
 
 def load_user(nombre: str) -> dict:
-    p = user_path(nombre)
-    if not os.path.exists(p):
-        raise FileNotFoundError(p)
-    with open(p, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return db_load_user(_safe_name(nombre))
 
 
 def save_user(user: dict) -> None:
-    up = user_path(user["nombre"])
-    with open(up, "w", encoding="utf-8") as f:
-        json.dump(user, f, ensure_ascii=False, indent=2)
-    try:
-        os.chmod(up, 0o600)
-    except Exception:
-        pass
+    db_save_user(user)
 
 
 def list_users() -> list:
-    users = []
-    if not os.path.exists(USUARIOS_DIR):
-        return users
-    for fn in os.listdir(USUARIOS_DIR):
-        if fn.endswith(".json"):
-            try:
-                with open(os.path.join(USUARIOS_DIR, fn), "r", encoding="utf-8") as f:
-                    users.append(json.load(f))
-            except:
-                pass
-    users.sort(key=lambda x: x.get("nombre", "").lower())
-    return users
+    return db_list_users()
 
 
 def is_admin_legacy_user(user: dict) -> bool:
@@ -1417,7 +1400,7 @@ def usuario_reset(nombre, plataforma):
     if plataforma not in ("youtube", "tiktok", "instagram", "facebook"):
         abort(400, "Plataforma inválida")
 
-    if not os.path.exists(user_path(nombre)):
+    if not user_exists(nombre):
         abort(404, f"Usuario no existe: {nombre}")
 
     base_user = os.path.join(SESSIONS_DIR, nombre)
@@ -1548,7 +1531,7 @@ def crear():
         "password_hash": generate_password_hash(raw_pw),
     })
 
-    if not os.path.exists(user_path(nombre)):
+    if not user_exists(nombre):
         save_user(user)
 
     content_file = request.files.get("content_file")
@@ -1570,7 +1553,7 @@ def crear():
 def generar(nombre):
     if not can_access_user(nombre):
         abort(403, "Sin acceso a este usuario")
-    if not os.path.exists(user_path(nombre)):
+    if not user_exists(nombre):
         abort(404, f"Usuario no existe: {nombre}")
 
     th = threading.Thread(target=run_job_for_user, args=(nombre,), daemon=True)
@@ -1734,9 +1717,7 @@ def usuario_eliminar(nombre):
         return redirect("/")
 
     try:
-        p = user_path(nombre)
-        if os.path.exists(p):
-            os.remove(p)
+        delete_user(nombre)
     except:
         pass
 
@@ -1763,7 +1744,7 @@ def usuario_upload_archivo(nombre, plataforma):
     nombre = _safe_name(nombre)
     plataforma = _safe_name(plataforma)
 
-    if not os.path.exists(user_path(nombre)):
+    if not user_exists(nombre):
         abort(404, f"Usuario no existe: {nombre}")
 
     f = request.files.get("file")
@@ -1907,7 +1888,7 @@ def usuario_login(nombre, plataforma):
     if plataforma not in ("tiktok", "instagram", "facebook"):
         abort(400, "Plataforma inválida")
 
-    if not os.path.exists(user_path(nombre)):
+    if not user_exists(nombre):
         abort(404, f"Usuario no existe: {nombre}")
 
     user_cfg = ensure_defaults(load_user(nombre))
@@ -1954,7 +1935,7 @@ def usuario_subir_foto(nombre):
     if not can_access_user(nombre):
         abort(403, "Sin acceso a este usuario")
     nombre = _safe_name(nombre)
-    if not os.path.exists(user_path(nombre)):
+    if not user_exists(nombre):
         abort(404, f"Usuario no existe: {nombre}")
 
     f = request.files.get("file")

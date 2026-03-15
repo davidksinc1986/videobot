@@ -1,10 +1,10 @@
 import os
-import json
 import time
 import traceback
 from datetime import datetime
 
-from config import USUARIOS_DIR, TEMP_DIR
+from config import TEMP_DIR
+from storage import init_db, migrate_json_users_if_needed, load_user as db_load_user, save_user as db_save_user, list_users as db_list_users
 from generador import generar_video_usuario
 
 from subir_youtube import subir_youtube
@@ -34,18 +34,12 @@ def _today_str():
     return _now().strftime("%Y-%m-%d")
 
 
-def user_path(nombre: str) -> str:
-    return os.path.join(USUARIOS_DIR, f"{nombre}.json")
-
-
-def load_user_file(path: str) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def load_user_file(path_or_name: str) -> dict:
+    return db_load_user(path_or_name)
 
 
 def save_user(user: dict) -> None:
-    with open(user_path(user["nombre"]), "w", encoding="utf-8") as f:
-        json.dump(user, f, ensure_ascii=False, indent=2)
+    db_save_user(user)
 
 
 def ensure_defaults(user: dict) -> dict:
@@ -291,7 +285,7 @@ def run_job(user: dict) -> None:
 
         video_path = generar_video_usuario(user)
 
-        user = ensure_defaults(load_user_file(user_path(nombre)))
+        user = ensure_defaults(db_load_user(nombre))
         user = _reset_daily_if_needed(user)
 
         try:
@@ -299,7 +293,7 @@ def run_job(user: dict) -> None:
         finally:
             save_user(user)  # guarda logs de uploads aunque fallen
 
-        user = ensure_defaults(load_user_file(user_path(nombre)))
+        user = ensure_defaults(db_load_user(nombre))
         user = _reset_daily_if_needed(user)
         user["estado"] = "completado"
         user["ultimo_video"] = video_path
@@ -312,7 +306,7 @@ def run_job(user: dict) -> None:
     except Exception:
         tb = traceback.format_exc()
         try:
-            user = ensure_defaults(load_user_file(user_path(nombre)))
+            user = ensure_defaults(db_load_user(nombre))
             user = _reset_daily_if_needed(user)
             user["estado"] = "error"
             user["ultimo_error"] = _short_error(tb)
@@ -328,22 +322,22 @@ def run_job(user: dict) -> None:
 def main():
     print("🕒 Scheduler multinicho + multiusuario iniciado")
     print(f"📌 Tick: cada {TICK_SECONDS}s")
-    print(f"📌 Usuarios: {USUARIOS_DIR}")
+    init_db()
+    migrated = migrate_json_users_if_needed()
+    if migrated:
+        print(f"✅ Migrados {migrated} usuarios JSON a SQLite")
     print(f"📌 Sessions: {SESSIONS_DIR}")
 
     while True:
         try:
-            if not os.path.exists(USUARIOS_DIR):
+            users = db_list_users()
+            if not users:
                 time.sleep(TICK_SECONDS)
                 continue
 
-            for fn in os.listdir(USUARIOS_DIR):
-                if not fn.endswith(".json"):
-                    continue
-
-                path = os.path.join(USUARIOS_DIR, fn)
+            for raw_user in users:
                 try:
-                    user = ensure_defaults(load_user_file(path))
+                    user = ensure_defaults(raw_user)
                 except:
                     continue
 
