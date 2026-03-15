@@ -9,8 +9,8 @@
   {% if auth.role != "anon" %}
   <div class="user-role-corner badge"><span class="dot pink"></span>{{ t.user_type }}: <b>{% if auth.role == "superuser" %}{{ t.role_admin }}{% else %}{{ t.role_user }}{% endif %}</b></div>
   {% endif %}
-  <div class="container">
 
+  <div class="container">
     <div class="topbar">
       <div class="brand">
         <img class="brand-logo" src="/static/bot1.png" alt="bot">
@@ -35,11 +35,6 @@
         <h2>{{ t.hero_admin_title }}</h2>
         <p class="sub">{{ t.hero_admin_subtitle }}</p>
       </div>
-      <div class="hero-mini-grid">
-        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611162616475-46b635cb6868?auto=format&fit=crop&w=800&q=80')"></div>
-        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=800&q=80')"></div>
-        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1628816417761-74d223a2906d?auto=format&fit=crop&w=800&q=80')"></div>
-      </div>
     </section>
 
     <div class="grid top-cards-grid">
@@ -48,176 +43,77 @@
         <h2>{{ t.create_user }}</h2>
         <form action="/crear" method="POST" enctype="multipart/form-data">
           <div class="form-row-group">
-            <div class="form-field">
-              <label>{{ t.name_id }}</label>
-              <input class="input" name="nombre" placeholder="ej: maria01">
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.niche }}</label>
-              <select name="nicho">
-                {% for k in nichos %}
-                  <option value="{{ k }}" {% if k == 'motivacion' %}selected{% endif %}>
-                    {{ niche_label(k, lang) }}
-                  </option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.user_language }}</label>
-              <select name="idioma">
-                <option value="es" selected>es</option>
-                <option value="en">en</option>
-                <option value="pt">pt</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.tenant_id_label }}</label>
-              <input class="input" name="tenant_id" placeholder="acme" value="default"/>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.plan_label }}</label>
-              <select name="plan">
-                <option value="starter" selected>{{ t.plan_starter }} (YouTube)</option>
-                <option value="growth">{{ t.plan_growth }} (YouTube + TikTok + Instagram)</option>
-                <option value="scale">{{ t.plan_scale }} (YouTube + TikTok + Instagram + Facebook)</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.target_seconds_label }}</label>
-              <input class="input" type="number" min="20" max="45" name="target_seconds" value="30"/>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.content_source }}</label>
-              <select name="content_source">
-                <option value="ai" selected>{{ t.content_ai }}</option>
-                <option value="file">{{ t.content_file }}</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.content_file_optional }}</label>
-              <input class="input" type="file" name="content_file" accept=".txt,.md,.csv"/>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.voice_provider }}</label>
-              <select name="voice_provider">
-                <option value="gtts" selected>gtts (free)</option>
-                <option value="elevenlabs">elevenlabs</option>
-                <option value="auto">auto</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.video_provider }}</label>
-              <select name="video_provider">
-                <option value="pixabay" selected>pixabay (free)</option>
-                <option value="pexels">pexels</option>
-                <option value="auto">auto</option>
-                <option value="fallback">fallback</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.script_provider }}</label>
-              <select name="script_provider">
-                <option value="local" selected>local</option>
-                <option value="openai">openai</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label>{{ t.email_login }}</label>
-              <input class="input" name="email" type="email" placeholder="cliente@correo.com" required/>
-            </div>
-            <div class="form-field">
-              <label>{{ t.password_login }}</label>
-              <input class="input" type="password" name="password" placeholder="******" required/>
-            </div>
+            <div class="form-field"><label>{{ t.name_id }}</label><input class="input" name="nombre" placeholder="ej: maria01"></div>
+            <div class="form-field"><label>{{ t.niche }}</label><select name="nicho">{% for k in nichos %}<option value="{{ k }}" {% if k == 'motivacion' %}selected{% endif %}>{{ niche_label(k, lang) }}</option>{% endfor %}</select></div>
+            <div class="form-field"><label>{{ t.user_language }}</label><select name="idioma"><option value="es" selected>es</option><option value="en">en</option><option value="pt">pt</option></select></div>
+            <div class="form-field"><label>{{ t.tenant_id_label }}</label><input class="input" name="tenant_id" placeholder="acme" value="default"/></div>
+            <div class="form-field"><label>{{ t.plan_label }}</label><select name="plan"><option value="starter" selected>{{ t.plan_starter }}</option><option value="growth">{{ t.plan_growth }}</option><option value="scale">{{ t.plan_scale }}</option></select></div>
+            <div class="form-field"><label>{{ t.target_seconds_label }}</label><input class="input" type="number" min="20" max="45" name="target_seconds" value="30"/></div>
+            <div class="form-field"><label>{{ t.content_source }}</label><select name="content_source"><option value="ai" selected>{{ t.content_ai }}</option><option value="file">{{ t.content_file }}</option></select></div>
+            <div class="form-field"><label>{{ t.content_file_optional }}</label><input class="input" type="file" name="content_file" accept=".txt,.md,.csv"/></div>
+            <div class="form-field"><label>{{ t.voice_provider }}</label><select name="voice_provider"><option value="gtts" selected>gtts</option><option value="elevenlabs">elevenlabs</option><option value="auto">auto</option></select></div>
+            <div class="form-field"><label>{{ t.video_provider }}</label><select name="video_provider"><option value="pixabay" selected>pixabay</option><option value="pexels">pexels</option><option value="auto">auto</option><option value="fallback">fallback</option></select></div>
+            <div class="form-field"><label>{{ t.script_provider }}</label><select name="script_provider"><option value="local" selected>local</option><option value="openai">openai</option></select></div>
+            <div class="form-field"><label>{{ t.email_login }}</label><input class="input" name="email" type="email" required/></div>
+            <div class="form-field"><label>{{ t.password_login }}</label><input class="input" type="password" name="password" required/></div>
           </div>
-
-          <div class="action-button-row">
-            <button class="btn blue" type="submit">➕ {{ t.create }}</button>
-          </div>
+          <div class="action-button-row"><button class="btn blue" type="submit">➕ {{ t.create }}</button></div>
         </form>
       </div>
 
       <div class="card quick-actions-card glass">
         <h2>{{ t.quick_panel_title }}</h2>
         <p class="small">{{ t.quick_panel_desc }}</p>
-        <a class="btn ghost" href="/monitor">📡 {{ t.monitor }}</a>
-        <form class="inline-form" action="/admin/limpiar/videos" method="POST"><button class="btn ghost" type="submit">🧹 {{ t.clear_videos_btn }}</button></form>
-        <form class="inline-form" action="/admin/limpiar/temp" method="POST"><button class="btn ghost" type="submit">🧹 {{ t.clear_temp_btn }}</button></form>
+        <div class="quick-actions-stack">
+          <a class="btn ghost" href="/monitor">📡 {{ t.monitor }}</a>
+          <form class="inline-form" action="/admin/limpiar/videos" method="POST"><button class="btn ghost" type="submit">🧹 {{ t.clear_videos_btn }}</button></form>
+          <form class="inline-form" action="/admin/limpiar/temp" method="POST"><button class="btn ghost" type="submit">🧹 {{ t.clear_temp_btn }}</button></form>
+        </div>
       </div>
       {% endif %}
     </div>
 
-    <div class="card users-card glass">
+    <section class="card users-card glass">
       <h2>{{ t.users }}</h2>
       {% if not usuarios %}
-      <p class="small">{{ t.no_users_yet }}</p>
+        <p class="small">{{ t.no_users_yet }}</p>
       {% else %}
-      <div class="table">
-        <div class="thead">
-          <div>{{ t.user }}</div>
-          <div>{{ t.tenant_plan }}</div>
-          <div>{{ t.niche }}</div>
-          <div>{{ t.status }}</div>
-          <div>{{ t.last_video }}</div>
-          <div>{{ t.today }}</div>
-          <div>{{ t.actions }}</div>
-        </div>
-
-        {% for u in usuarios %}
-          <div class="trow user-entry">
-            <div class="user-info">
-              <div class="badge"><span class="dot pink"></span> <b>{{ u.nombre }}</b></div>
-              <div class="small">ID: <code>{{ u.nombre }}</code></div>
-              <div class="small scheduler-info">
-                {{ t.scheduler }}: {{ 'ON' if u.activo_scheduler else 'OFF' }} · {{ t.interval }}: {{ u.intervalo_minutos }}m
+        <div class="users-list">
+          {% for u in usuarios %}
+          <article class="user-list-card">
+            <div class="user-list-head">
+              <div>
+                <div class="badge"><span class="dot pink"></span><b>{{ u.nombre }}</b></div>
+                <p class="small">{{ t.tenant_plan }}: {{ u.tenant_id }} / {{ u.plan }}</p>
               </div>
-              <div class="small scheduler-info">Último run: {{ u.ultimo_run if u.ultimo_run else '-' }}</div>
+              <span class="badge"><span class="dot"></span>{{ u.estado }}</span>
+            </div>
 
+            <div class="user-list-grid">
+              <p><b>{{ t.niche }}:</b> {{ niche_label(u.nicho, lang) }}</p>
+              <p><b>{{ t.scheduler }}:</b> {{ 'ON' if u.activo_scheduler else 'OFF' }} · {{ u.intervalo_minutos }}m</p>
+              <p><b>{{ t.today }}:</b> {{ u.videos_hoy }}/{{ u.max_videos_dia }}</p>
+              <p><b>{{ t.last_run }}:</b> {{ u.ultimo_run if u.ultimo_run else '-' }}</p>
+              <p class="full"><b>{{ t.last_video }}:</b> <span class="truncate-line">{{ u.ultimo_video if u.ultimo_video else '-' }}</span></p>
               {% if u.ultimo_error %}
-                <div class="small error-message">
-                  ⚠️ {{ t.recent_error }}
-                </div>
+                <p class="full error-message"><b>{{ t.recent_error }}:</b> {{ u.ultimo_error }}</p>
               {% endif %}
             </div>
-
-            <div class="small">{{ u.tenant_id }} / {{ u.plan }}</div>
-            <div class="user-niche">{{ u.nicho }}</div>
-            <div class="user-status">
-              <span class="badge"><span class="dot"></span> {{ u.estado }}</span>
-            </div>
-
-            <div class="small user-last-video-path">
-              {{ u.ultimo_video }}
-            </div>
-
-            <div class="user-videos-today"><b>{{ u.videos_hoy }}/{{ u.max_videos_dia }}</b></div>
 
             <div class="action-group">
               <a class="btn ghost" href="/usuario/{{ u.nombre }}">⚙️ {{ t.edit }}</a>
               <a class="btn" href="/generar/{{ u.nombre }}">🎬 {{ t.generate }}</a>
-
               {% if auth.role=="superuser" and u.nombre|lower != 'david' %}
               <form class="inline-form" action="/usuario/{{ u.nombre }}/eliminar" method="POST" onsubmit="return confirm('{{ t.delete_confirm|replace('{name}', u.nombre) }}');">
                 <button class="btn danger" type="submit">🗑 {{ t.delete }}</button>
               </form>
               {% endif %}
             </div>
-          </div>
-        {% endfor %}
-      </div>
+          </article>
+          {% endfor %}
+        </div>
       {% endif %}
-    </div>
+    </section>
   </div>
 </body>
 </html>

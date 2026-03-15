@@ -144,12 +144,12 @@
           <div class="tab-panel" id="tab-{{ p }}">
             <div class="platform-card">
               <div class="platform-head"><div class="platform-title"><span class="badge"><span class="dot"></span>{{ p|title }}</span></div>
-                <label class="toggle"><input type="checkbox" name="{{ p }}_activo" {% if user[p ~ '_activo'] %}checked{% endif %} {% if auth.role!="superuser" %}disabled{% endif %}><span>{{ t.active }}</span></label>
+                <label class="toggle"><input type="checkbox" name="{{ p }}_activo" {% if user[p ~ '_activo'] %}checked{% endif %} ><span>{{ t.active }}</span></label>
               </div>
               <div class="form-row-group">
-                <div class="form-field"><label>Backend</label><select name="{{ p }}_backend" {% if auth.role!="superuser" %}disabled{% endif %}><option value="auto" {% if user[p ~ '_backend']=='auto' %}selected{% endif %}>auto (playwright → selenium)</option><option value="api" {% if user[p ~ '_backend']=='api' %}selected{% endif %}>api</option><option value="playwright" {% if user[p ~ '_backend']=='playwright' %}selected{% endif %}>playwright</option><option value="selenium" {% if user[p ~ '_backend']=='selenium' %}selected{% endif %}>selenium</option></select></div>
+                <div class="form-field"><label>Backend</label><select name="{{ p }}_backend" ><option value="auto" {% if user[p ~ '_backend']=='auto' %}selected{% endif %}>auto (playwright → selenium)</option><option value="api" {% if user[p ~ '_backend']=='api' %}selected{% endif %}>api</option><option value="playwright" {% if user[p ~ '_backend']=='playwright' %}selected{% endif %}>playwright</option><option value="selenium" {% if user[p ~ '_backend']=='selenium' %}selected{% endif %}>selenium</option></select></div>
                 {% if p=='youtube' %}
-                <div class="form-field"><label>{{ t.yt_auth }}</label><select name="youtube_auth_method" {% if auth.role!="superuser" or user._is_david_legacy %}disabled{% endif %}><option value="token_upload" {% if user.youtube_auth_method=='token_upload' %}selected{% endif %}>{{ t.yt_token_upload }}</option><option value="oauth_web" {% if user.youtube_auth_method=='oauth_web' %}selected{% endif %}>{{ t.yt_oauth_web }}</option></select></div>
+                <div class="form-field"><label>{{ t.yt_auth }}</label><select name="youtube_auth_method" {% if user._is_david_legacy %}disabled{% endif %}><option value="token_upload" {% if user.youtube_auth_method=='token_upload' %}selected{% endif %}>{{ t.yt_token_upload }}</option><option value="oauth_web" {% if user.youtube_auth_method=='oauth_web' %}selected{% endif %}>{{ t.yt_oauth_web }}</option></select></div>
                 {% endif %}
               </div>
               <p class="small">{{ t.api_mode_hint }}</p>

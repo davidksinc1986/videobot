@@ -4,6 +4,7 @@ import random
 import glob
 import shutil
 import requests
+import hashlib
 
 # --- MoviePy Compatibilidad Robusta ---
 try:
@@ -1335,6 +1336,81 @@ def _download_pixabay_video(query, out_path, api_key=None):
 
 
 
+
+
+def _history_bucket(user: dict, key: str, max_len: int = 120) -> list[str]:
+    data = user.get("generation_history")
+    if not isinstance(data, dict):
+        data = {}
+    bucket = data.get(key)
+    if not isinstance(bucket, list):
+        bucket = []
+    bucket = [str(x).strip() for x in bucket if str(x).strip()]
+    data[key] = bucket[-max_len:]
+    user["generation_history"] = data
+    return data[key]
+
+
+def _push_history(user: dict, key: str, value: str, max_len: int = 120) -> None:
+    value = (value or "").strip()
+    if not value:
+        return
+    bucket = _history_bucket(user, key, max_len=max_len)
+    bucket.append(value)
+    data = user.get("generation_history") or {}
+    data[key] = bucket[-max_len:]
+    user["generation_history"] = data
+
+
+def _pick_with_history(candidates: list[str], user: dict, history_key: str, recent_window: int = 10) -> str:
+    clean = [c for c in candidates if isinstance(c, str) and c.strip()]
+    if not clean:
+        return ""
+    if len(clean) == 1:
+        picked = clean[0]
+        _push_history(user, history_key, picked)
+        return picked
+
+    recent = set(_history_bucket(user, history_key)[-recent_window:])
+    pool = [c for c in clean if c not in recent]
+    chosen = random.choice(pool or clean)
+    _push_history(user, history_key, chosen)
+    return chosen
+
+
+def _script_signature(text: str) -> str:
+    base = " ".join((text or "").lower().split())
+    return hashlib.sha1(base[:280].encode("utf-8", errors="ignore")).hexdigest()[:12]
+
+
+def _ensure_script_novelty(user: dict, text: str, lang: str) -> str:
+    signature = _script_signature(text)
+    recent = _history_bucket(user, "script_signatures", max_len=80)[-12:]
+    if signature in recent:
+        boosters = {
+            "es": [
+                "Tip accionable: anota una sola métrica y mejórala 1% diario.",
+                "Micro reto: aplica esto hoy por 20 minutos sin distracciones.",
+                "Enfoque pro: define objetivo, sistema y revisión semanal."
+            ],
+            "en": [
+                "Action tip: track one metric and improve it by 1% daily.",
+                "Micro challenge: apply this for 20 focused minutes today.",
+                "Pro framework: set goal, system, and weekly review."
+            ],
+            "pt": [
+                "Dica prática: acompanhe uma métrica e melhore 1% por dia.",
+                "Micro desafio: aplique isso por 20 minutos hoje.",
+                "Estrutura pro: objetivo, sistema e revisão semanal."
+            ],
+        }
+        addon = random.choice(boosters.get(lang, boosters["es"]))
+        text = f"{text} {addon}"
+        signature = _script_signature(text)
+
+    _push_history(user, "script_signatures", signature, max_len=80)
+    return text
+
 def _get_pixabay_key(user):
     cred = user.get("credenciales", {}) or {}
     return (cred.get("pixabay_api_key") or PIXABAY_API_KEY).strip()
@@ -1375,14 +1451,21 @@ def _script_from_nicho_library(user: dict, nicho_key: str, seconds: int) -> str:
         return ""
 
     hook = (user.get("hook_final") or "Suscríbete para más").strip()
-    # evitamos frases sueltas random: armamos intro + desarrollo + cierre
-    take = min(4, max(2, int(seconds / 12)))
-    picked = random.sample(lines, k=take) if len(lines) >= take else lines
+    take = min(5, max(3, int(seconds / 10)))
+    picked = _pick_non_repeated_lines(user, lines, take)
+    if not picked:
+        picked = random.sample(lines, k=min(len(lines), take))
 
-    intro = f"En {nicho_key.replace('_', ' ')} recuerda esto:"
-    body = " ".join(picked[:3])
-    closing = picked[-1] if len(picked) > 1 else "Aplica esto hoy mismo."
-    return f"{intro} {body} {closing} {hook}".strip()
+    intros = [
+        f"Si quieres mejorar en {_humanize_key(nicho_key)}, aplica esto:",
+        f"Mini guía de valor sobre {_humanize_key(nicho_key)}:",
+        f"Estrategia rápida de {_humanize_key(nicho_key)} para hoy:"
+    ]
+    intro = _pick_with_history(intros, user, "intro_history", recent_window=4)
+    body = " ".join(picked[:-1]) if len(picked) > 1 else picked[0]
+    closing = picked[-1] if len(picked) > 1 else "Empieza hoy con una acción concreta."
+    text = f"{intro} {body} Cierre: {closing} {hook}".strip()
+    return _ensure_script_novelty(user, text, _gtts_lang(user.get("idioma", "es")))
 
 
 def _resolve_script_text(user: dict, nicho_key: str, tema: str, seconds: int, estilo: str) -> str:
@@ -1396,7 +1479,8 @@ def _resolve_script_text(user: dict, nicho_key: str, tema: str, seconds: int, es
                 hook = (user.get("hook_final") or "Suscríbete para más").strip()
                 take = min(4, max(2, int(seconds / 12)))
                 picked = _pick_non_repeated_lines(user, lines, take)
-                return (" ".join(picked) + f" {hook}").strip()
+                text = (" ".join(picked) + f" {hook}").strip()
+                return _ensure_script_novelty(user, text, _gtts_lang(user.get("idioma", "es")))
 
         # si no proporciona textos o el archivo viene vacío, caer a nicho por defecto
         fallback_nicho_text = _script_from_nicho_library(user, nicho_key, seconds)
@@ -1429,7 +1513,7 @@ def _resolve_script_text(user: dict, nicho_key: str, tema: str, seconds: int, es
                 data = r.json()
                 text = (((data.get("choices") or [{}])[0].get("message") or {}).get("content") or "").strip()
                 if text:
-                    return text
+                    return _ensure_script_novelty(user, text, _gtts_lang(user.get("idioma", "es")))
             except Exception as e:
                 print(f"⚠️ OpenAI script provider falló: {e}")
 
@@ -1438,7 +1522,7 @@ def _resolve_script_text(user: dict, nicho_key: str, tema: str, seconds: int, es
     if niche_text:
         return niche_text
 
-    return _build_script(user, nicho_key, tema, seconds, estilo)
+    return _ensure_script_novelty(user, _build_script(user, nicho_key, tema, seconds, estilo), _gtts_lang(user.get("idioma", "es")))
 
 
 
@@ -1465,13 +1549,19 @@ def _pick_library_video(user: dict, out_path: str) -> bool:
     if not files:
         return False
 
-    chosen = random.choice(files)
+    recent = set(_history_bucket(user, "bg_library", max_len=80)[-12:])
+    pool = [f for f in files if os.path.basename(f) not in recent]
+    chosen = random.choice(pool or files)
     try:
         shutil.copy2(chosen, out_path)
-        return os.path.exists(out_path) and os.path.getsize(out_path) > 1000
+        ok = os.path.exists(out_path) and os.path.getsize(out_path) > 1000
+        if ok:
+            _push_history(user, "bg_library", os.path.basename(chosen), max_len=80)
+        return ok
     except Exception as e:
         print(f"⚠️ No se pudo usar video premium local: {e}")
         return False
+
 
 def _provider_order(user: dict, kind: str) -> list[str]:
     setting_key = "voice_provider" if kind == "voice" else "video_provider"
@@ -1563,9 +1653,30 @@ def _avatar_overlay_clip(user: dict, duration: float):
         return None
 
 
+
 # ============================
 # PROCESAMIENTO DE VIDEO
 # ============================
+
+def _fallback_color_for_user(user: dict, nicho_key: str) -> tuple[int, int, int]:
+    base = NICHOS.get(nicho_key, {}).get("color", (0, 180, 160))
+    variations = [(-35, 10, 25), (22, -18, 18), (12, 24, -26), (-18, -8, 34), (30, 12, -10)]
+    history = _history_bucket(user, "fallback_palette", max_len=40)
+    idx = len(history) % len(variations)
+    dv = variations[idx]
+    varied = tuple(max(0, min(255, int(base[i] + dv[i]))) for i in range(3))
+    _push_history(user, "fallback_palette", f"{varied[0]}-{varied[1]}-{varied[2]}", max_len=40)
+    return varied
+
+
+def _pick_topic_for_user(user: dict, subcats: dict) -> tuple[str, dict, str, str]:
+    subcat_keys = list(subcats.keys())
+    subcat_key = _pick_with_history(subcat_keys, user, "subcat_history", recent_window=6)
+    subcat = subcats[subcat_key]
+    tema = _pick_with_history(subcat.get("temas_video", []), user, "topic_history", recent_window=12)
+    estilo = (subcat.get("estilo") or "educativo").strip()
+    return subcat_key, subcat, tema, estilo
+
 
 def generar_video_usuario(user: dict) -> str:
     os.makedirs(VIDEOS_DIR, exist_ok=True)
@@ -1597,11 +1708,7 @@ def generar_video_usuario(user: dict) -> str:
     estilo = "educativo"  # default seguro
 
     for _ in range(max_intentos):
-        subcat_key = random.choice(list(subcats.keys()))
-        subcat = subcats[subcat_key]
-
-        tema = random.choice(subcat["temas_video"])
-        estilo = subcat.get("estilo", "educativo") or "educativo"
+        subcat_key, subcat, tema, estilo = _pick_topic_for_user(user, subcats)
 
         print(f"🔎 Intentando descargar video para tema: {tema}")
 
@@ -1637,7 +1744,7 @@ def generar_video_usuario(user: dict) -> str:
     # 3) Fallback sólido
     if not descargado:
         print("⚠️ Pexels/Pixabay fallaron. Generando video fallback sólido.")
-        color = NICHOS[nicho_key]["color"]
+        color = _fallback_color_for_user(user, nicho_key)
         fallback_clip = ColorClip(size=(1080, 1920), color=color, duration=target_dur)
         fallback_clip.write_videofile(temp_video, fps=30, codec="libx264", audio=False, logger=None)
         fallback_clip.close()
