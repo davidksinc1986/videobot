@@ -1,10 +1,12 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_ROOT = os.path.abspath(os.path.expanduser(os.environ.get("VIDEOBOT_DATA_DIR", "~/.videobot_data")))
 
-USUARIOS_DIR = os.path.join(BASE_DIR, "usuarios")
-VIDEOS_DIR = os.path.join(BASE_DIR, "videos")
-TEMP_DIR = os.path.join(BASE_DIR, "temp")
+USUARIOS_DIR = os.path.join(DATA_ROOT, "usuarios")
+VIDEOS_DIR = os.path.join(DATA_ROOT, "videos")
+TEMP_DIR = os.path.join(DATA_ROOT, "temp")
+DB_PATH = os.path.join(DATA_ROOT, "videobot.sqlite3")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 os.makedirs(USUARIOS_DIR, exist_ok=True)

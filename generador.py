@@ -1678,6 +1678,40 @@ def _pick_topic_for_user(user: dict, subcats: dict) -> tuple[str, dict, str, str
     return subcat_key, subcat, tema, estilo
 
 
+
+def _safe_write_videofile(clip, output_path: str, with_audio: bool = True) -> None:
+    """Robust wrapper for MoviePy write_videofile with fallbacks/retries."""
+    common = {
+        "fps": 30,
+        "codec": "libx264",
+        "threads": 2,
+        "logger": None,
+        "ffmpeg_params": ["-movflags", "+faststart"],
+    }
+
+    attempts = [
+        dict(common, audio=with_audio, audio_codec="aac", preset="medium", bitrate="3000k"),
+        dict(common, audio=with_audio, audio_codec="aac", preset="ultrafast"),
+    ]
+
+    last_error = None
+    for opts in attempts:
+        try:
+            if with_audio:
+                opts["temp_audiofile"] = output_path + ".tmp-audio.m4a"
+                opts["remove_temp"] = True
+            clip.write_videofile(output_path, **opts)
+            return
+        except Exception as e:
+            last_error = e
+            try:
+                if os.path.exists(output_path):
+                    os.remove(output_path)
+            except Exception:
+                pass
+
+    raise RuntimeError(f"write_videofile failed after retries: {last_error}")
+
 def generar_video_usuario(user: dict) -> str:
     os.makedirs(VIDEOS_DIR, exist_ok=True)
     os.makedirs(TEMP_DIR, exist_ok=True)
@@ -1746,7 +1780,7 @@ def generar_video_usuario(user: dict) -> str:
         print("⚠️ Pexels/Pixabay fallaron. Generando video fallback sólido.")
         color = _fallback_color_for_user(user, nicho_key)
         fallback_clip = ColorClip(size=(1080, 1920), color=color, duration=target_dur)
-        fallback_clip.write_videofile(temp_video, fps=30, codec="libx264", audio=False, logger=None)
+        _safe_write_videofile(fallback_clip, temp_video, with_audio=False)
         fallback_clip.close()
 
     # 4) Audio (ahora largo y variado)
@@ -1781,14 +1815,7 @@ def generar_video_usuario(user: dict) -> str:
             if avatar is not None:
                 video_final = CompositeVideoClip([video_final, avatar]).set_duration(dur_final).set_audio(final_audio)
 
-            video_final.write_videofile(
-                out_video,
-                fps=30,
-                codec="libx264",
-                audio_codec="aac",
-                threads=4,
-                logger=None
-            )
+            _safe_write_videofile(video_final, out_video, with_audio=True)
 
     finally:
         # Limpieza segura
