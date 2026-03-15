@@ -50,13 +50,18 @@
     <div class="grid user-layout-grid">
       <div class="card glass">
         <form action="/usuario/{{ user.nombre }}/guardar" method="POST">
+          <div class="wizard-progress">
+            <div class="wizard-progress-bar"><span id="wizardProgressFill"></span></div>
+            <p class="small">Setup wizard: completa cada paso para dejar el bot corriendo 24/7.</p>
+          </div>
+
           <div class="tabs-nav">
-            <button type="button" class="tab-btn active" data-tab="perfil">{{ t.tab_profile }}</button>
-            <button type="button" class="tab-btn" data-tab="contenido">{{ t.tab_content }}</button>
-            <button type="button" class="tab-btn" data-tab="youtube">{{ t.tab_youtube }}</button>
-            <button type="button" class="tab-btn" data-tab="tiktok">{{ t.tab_tiktok }}</button>
-            <button type="button" class="tab-btn" data-tab="instagram">{{ t.tab_instagram }}</button>
-            <button type="button" class="tab-btn" data-tab="facebook">{{ t.tab_facebook }}</button>
+            <button type="button" class="tab-btn active" data-tab="perfil">① Perfil</button>
+            <button type="button" class="tab-btn" data-tab="contenido">② Contenido</button>
+            <button type="button" class="tab-btn" data-tab="youtube">③ YouTube</button>
+            <button type="button" class="tab-btn" data-tab="tiktok">④ TikTok</button>
+            <button type="button" class="tab-btn" data-tab="instagram">⑤ Instagram</button>
+            <button type="button" class="tab-btn" data-tab="facebook">⑥ Facebook</button>
           </div>
 
           <div class="tab-panel active" id="tab-perfil">
@@ -70,6 +75,7 @@
             <div class="form-row-group">
               <div class="form-field"><label>{{ t.email }}</label><input class="input" name="email" value="{{ user.email }}" /></div>
               <div class="form-field"><label>{{ t.get('password_keep_hint', t.password ~ ' (vacío = no cambiar)') }}</label><input class="input" type="password" name="password" value="" /></div>
+              <div class="form-field"><label>Modo de horario</label><select name="schedule_mode"><option value="always" {% if user.schedule_mode != 'window' %}selected{% endif %}>24/7 (siempre encendido)</option><option value="window" {% if user.schedule_mode == 'window' %}selected{% endif %}>Ventana por horario</option></select></div>
               <div class="form-field"><label>{{ t.window_start }}</label><input class="input" name="ventana_inicio" value="{{ user.ventana_inicio }}" /></div>
               <div class="form-field"><label>{{ t.window_end }}</label><input class="input" name="ventana_fin" value="{{ user.ventana_fin }}" /></div>
               <div class="form-field"><label>{{ t.final_hook }}</label><input class="input" name="hook_final" value="{{ user.hook_final }}" /></div>
@@ -180,7 +186,11 @@
           {% endfor %}
 
           <div class="hr"></div>
-          <button class="btn blue" type="submit">💾 {{ t.save }}</button>
+          <div class="wizard-controls">
+            <button type="button" class="btn ghost" id="wizardPrev">← Paso anterior</button>
+            <button type="button" class="btn ghost" id="wizardNext">Siguiente paso →</button>
+            <button class="btn blue" type="submit">💾 {{ t.save }}</button>
+          </div>
         </form>
       </div>
 
@@ -190,6 +200,8 @@
         <div class="events">
           <div class="event"><b>{{ t.videos_today_label }}:</b> {{ user.videos_hoy }}</div>
           <div class="event"><b>{{ t.daily_limit_label }}:</b> {{ user.max_videos_dia }}</div>
+          <div class="event"><b>Modo scheduler:</b> {% if user.schedule_mode == "window" %}Ventana {{ user.ventana_inicio }} - {{ user.ventana_fin }}{% else %}24/7{% endif %}</div>
+          <div class="event"><b>Formato de título:</b> Consejo por nicho + autor + secuencia (ej. #{{ (user.title_counter or 0) + 1 }})</div>
           <div class="event"><b>{{ t.last_run }}:</b> {{ user.ultimo_run if user.ultimo_run else '-' }}</div>
           <div class="event"><b>{{ t.last_video }}:</b> <span style="word-break:break-word;">{{ user.ultimo_video if user.ultimo_video else '-' }}</span></div>
         </div>
@@ -214,12 +226,23 @@
 <script>
   const tabs = document.querySelectorAll('.tab-btn');
   const panels = document.querySelectorAll('.tab-panel');
-  tabs.forEach(btn => btn.addEventListener('click', () => {
-    tabs.forEach(b => b.classList.remove('active'));
-    panels.forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-  }));
+  const wizardFill = document.getElementById('wizardProgressFill');
+  let activeIndex = 0;
+
+  function activateTab(index){
+    activeIndex = Math.max(0, Math.min(index, tabs.length - 1));
+    tabs.forEach((b, i) => b.classList.toggle('active', i === activeIndex));
+    panels.forEach((p, i) => p.classList.toggle('active', i === activeIndex));
+    if (wizardFill) {
+      const pct = ((activeIndex + 1) / tabs.length) * 100;
+      wizardFill.style.width = pct + '%';
+    }
+  }
+
+  tabs.forEach((btn, idx) => btn.addEventListener('click', () => activateTab(idx)));
+  document.getElementById('wizardPrev')?.addEventListener('click', () => activateTab(activeIndex - 1));
+  document.getElementById('wizardNext')?.addEventListener('click', () => activateTab(activeIndex + 1));
+  activateTab(0);
 
   function checkReplace(form, currentCount, maxCount) {
     const replace = !!form.querySelector('.js-replace-existing')?.checked;
