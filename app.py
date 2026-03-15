@@ -1,4 +1,5 @@
 import os
+import json
 import time
 import traceback
 import threading
@@ -51,6 +52,48 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SESSIONS_DIR = os.path.join(BASE_DIR, "sessions")
 os.makedirs(SESSIONS_DIR, exist_ok=True)
 
+BRANDING_DIR = os.path.join(BASE_DIR, "static", "branding")
+os.makedirs(BRANDING_DIR, exist_ok=True)
+BRANDING_META_PATH = os.path.join(BASE_DIR, "branding_assets.json")
+
+DEFAULT_BRANDING_ASSETS = {
+    "brand_logo": "/static/snake-mafia-logo.svg",
+    "admin_icon": "/static/bot1.png",
+    "login_slide_1": "https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20motivation%20dark%20cinematic%20neon",
+    "login_slide_2": "https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20finance%20charts%20dark%20luxury",
+    "login_slide_3": "https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20hairstyle%20beauty%20studio%20dark",
+    "login_slide_4": "https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20haircare%20salon%20dark%20premium",
+    "login_slide_5": "https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20bridal%20makeup%20editorial%20dark%20style",
+    "user_hero_1": "https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?auto=format&fit=crop&w=900&q=80",
+    "user_hero_2": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=900&q=80",
+    "user_hero_3": "https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?auto=format&fit=crop&w=900&q=80",
+}
+
+
+def _load_branding_overrides() -> dict:
+    if not os.path.exists(BRANDING_META_PATH):
+        return {}
+    try:
+        with open(BRANDING_META_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_branding_overrides(data: dict) -> None:
+    with open(BRANDING_META_PATH, "w", encoding="utf-8") as f:
+        json.dump(data or {}, f, ensure_ascii=False, indent=2)
+
+
+def get_branding_assets() -> dict:
+    assets = dict(DEFAULT_BRANDING_ASSETS)
+    overrides = _load_branding_overrides()
+    for k, v in overrides.items():
+        if k in assets and isinstance(v, str) and v.strip():
+            assets[k] = v.strip()
+    return assets
+
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.getenv("APP_SECRET_KEY", "change-me-in-production")
 init_db()
@@ -61,6 +104,11 @@ if _migrated:
 SCHEDULER_TICK_SECONDS = 15
 _scheduler_started = False
 _scheduler_lock = threading.Lock()
+
+
+@app.context_processor
+def inject_branding_assets():
+    return {"branding_assets": get_branding_assets()}
 
 
 # ----------------------------
@@ -163,6 +211,8 @@ TRANSLATIONS = {
         "save": "Guardar cambios",
         "save_ok": "Configuración guardada correctamente.",
         "save_error": "No se pudo guardar la configuración.",
+        "save_banner_ok": "✅ Cambios guardados.",
+        "save_banner_error": "❌ Error al guardar. Revisa los campos e intenta nuevamente.",
         "back": "Volver al inicio",
 
         "upload_creds_sessions": "Archivos de Sesión / Credenciales",
@@ -347,6 +397,8 @@ TRANSLATIONS = {
         "save": "Save changes",
         "save_ok": "Settings were saved successfully.",
         "save_error": "Could not save settings.",
+        "save_banner_ok": "✅ Changes saved.",
+        "save_banner_error": "❌ Could not save changes. Check your fields and try again.",
         "back": "Back to home",
 
         "upload_creds_sessions": "Session Files / Credentials",
@@ -459,6 +511,8 @@ PT_OVERRIDES = {
     "save": "Salvar alterações",
     "save_ok": "Configuração salva com sucesso.",
     "save_error": "Não foi possível salvar a configuração.",
+    "save_banner_ok": "✅ Alterações salvas.",
+    "save_banner_error": "❌ Erro ao salvar. Revise os campos e tente novamente.",
     "back": "Voltar",
     "status": "Status",
     "language": "Idioma",
@@ -1618,6 +1672,8 @@ def usuario(nombre):
     user["_premium_background_files"] = _list_uploaded_files(premium_backgrounds_dir(user["nombre"]))
     nichos = list_nichos()
 
+    save_status = (request.args.get("saved") or "").strip().lower()
+
     return render_template(
         "user.html",
         user=user,
@@ -1625,7 +1681,8 @@ def usuario(nombre):
         lang=lang,
         t=tr(),
         auth=current_auth(),
-        niche_label=niche_label
+        niche_label=niche_label,
+        save_status=save_status
     )
 
 
@@ -1738,10 +1795,10 @@ def usuario_guardar(nombre):
     try:
         save_user(user)
         flash(tr().get("save_ok", "Configuración guardada correctamente."), "success")
+        return redirect(f"/usuario/{user['nombre']}?saved=1")
     except Exception:
         flash(tr().get("save_error", "No se pudo guardar la configuración."), "error")
-
-    return redirect(f"/usuario/{user['nombre']}")
+        return redirect(f"/usuario/{user['nombre']}?saved=0")
 
 
 @app.route("/usuario/<nombre>/eliminar", methods=["POST"])
@@ -1999,6 +2056,59 @@ def usuario_subir_foto(nombre):
     _append_event(user, "profile_photo", "Foto de perfil subida", {"file": dest_path})
     save_user(user)
     return redirect(f"/usuario/{nombre}")
+@app.route("/admin/branding/upload/<slot>", methods=["POST"])
+@login_required
+@superuser_required
+def admin_branding_upload(slot):
+    slot = (slot or "").strip().lower()
+    if slot not in DEFAULT_BRANDING_ASSETS:
+        abort(400, "Slot de imagen inválido")
+
+    f = request.files.get("file")
+    if not f or not f.filename:
+        abort(400, "Debes subir una imagen")
+
+    ext = os.path.splitext(f.filename)[1].lower()
+    if ext not in (".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"):
+        abort(400, "Formato inválido. Usa png/jpg/jpeg/webp/gif/svg")
+
+    safe_slot = "".join(ch for ch in slot if ch.isalnum() or ch == "_")
+    filename = f"{safe_slot}_{int(time.time())}{ext}"
+    dest_path = os.path.join(BRANDING_DIR, filename)
+    f.save(dest_path)
+
+    url = f"/static/branding/{filename}"
+    overrides = _load_branding_overrides()
+    overrides[slot] = url
+    _save_branding_overrides(overrides)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"ok": True, "slot": slot, "url": url})
+    return redirect("/")
+
+
+@app.route("/admin/branding/reset/<slot>", methods=["POST"])
+@login_required
+@superuser_required
+def admin_branding_reset(slot):
+    slot = (slot or "").strip().lower()
+    overrides = _load_branding_overrides()
+    if slot in overrides:
+        overrides.pop(slot, None)
+        _save_branding_overrides(overrides)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"ok": True, "slot": slot, "url": get_branding_assets().get(slot, "")})
+    return redirect("/")
+
+
+@app.route("/admin/branding/assets")
+@login_required
+@superuser_required
+def admin_branding_assets():
+    return jsonify(get_branding_assets())
+
+
 @app.route("/admin/limpiar/videos", methods=["POST"])
 @login_required
 @superuser_required
@@ -2041,4 +2151,4 @@ if __name__ == "__main__":
     print("✅ Static en:", os.path.abspath("static"))
     print("✅ Sessions dir:", SESSIONS_DIR)
     print("✅ Nichos desde generador.py:", len(list_nichos()))
-    app.run(host="127.0.0.1", port=APP_PORT, debug=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", APP_PORT)), debug=False, use_reloader=False)

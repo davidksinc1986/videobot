@@ -9,7 +9,11 @@
 <body class="marketing-body">
   <div class="marketing-shell login-upgrade-shell">
     <section class="hero-panel card glass login-upgrade-hero">
-      <span class="pill">🐍 {{ t.app_title }}</span>
+      <div class="brand-lockup">
+        <img src="{{ branding_assets.brand_logo }}" alt="Media by Snake Mafia" class="brand-logo" />
+        <span class="pill">🐍 {{ t.app_title }}</span>
+      </div>
+
       <h1>{{ t.app_title }}<br/>AI generated videos for monetization.</h1>
       <p class="sub">
         {% if lang=='en' %}
@@ -21,23 +25,34 @@
         {% endif %}
       </p>
 
-      <div class="ai-slider" id="aiSlider">
-        <article class="ai-slide active" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20motivation%20dark%20cinematic%20neon')"><span>Motivación</span></article>
-        <article class="ai-slide" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20finance%20charts%20dark%20luxury')"><span>Finanzas</span></article>
-        <article class="ai-slide" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20hairstyle%20beauty%20studio%20dark')"><span>{{ niche_label('hairstyle', lang) }}</span></article>
-        <article class="ai-slide" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20haircare%20salon%20dark%20premium')"><span>{{ niche_label('haircare', lang) }}</span></article>
-        <article class="ai-slide" style="background-image:url('https://image.pollinations.ai/prompt/ai%20generated%20short%20video%20thumbnail%20bridal%20makeup%20editorial%20dark%20style')"><span>{{ niche_label('maquillaje_novias', lang) }}</span></article>
-      </div>
+      <section class="snake-banner" aria-label="Snake loading video banner">
+        <div class="snake-social-bg" aria-hidden="true">
+          <span>▶ YouTube</span><span>♪ TikTok</span><span>◎ Instagram</span><span>f Facebook</span>
+        </div>
+        <div class="snake-banner-row">
+          <strong>Snake Render Engine</strong>
+          <small>Rendering video...</small>
+        </div>
+        <div class="snake-loader-track">
+          <span class="snake-loader-line"></span>
+          <span class="snake-loader-head">🐍</span>
+        </div>
+      </section>
 
-      <div class="hero-points">
-        <div>✅ 5+ temas visuales: motivación, dinero, {{ niche_label('hairstyle', lang) }}, {{ niche_label('haircare', lang) }}, maquillaje</div>
-        <div>✅ Nichos de belleza: {{ niche_label('maquillaje_social', lang) }}, {{ niche_label('maquillaje_novias', lang) }}, {{ niche_label('maquillaje_editorial', lang) }}, {{ niche_label('unas', lang) }}, {{ niche_label('skincare', lang) }}</div>
-        <div>✅ Flujo de monetización con métricas mensuales por plataforma</div>
+      <div class="ai-slider" id="aiSlider">
+        <article class="ai-slide active" style="background-image:url('{{ branding_assets.login_slide_1 }}')"><span>Motivación</span></article>
+        <article class="ai-slide" style="background-image:url('{{ branding_assets.login_slide_2 }}')"><span>Finanzas</span></article>
+        <article class="ai-slide" style="background-image:url('{{ branding_assets.login_slide_3 }}')"><span>{{ niche_label('hairstyle', lang) }}</span></article>
+        <article class="ai-slide" style="background-image:url('{{ branding_assets.login_slide_4 }}')"><span>{{ niche_label('haircare', lang) }}</span></article>
+        <article class="ai-slide" style="background-image:url('{{ branding_assets.login_slide_5 }}')"><span>{{ niche_label('maquillaje_novias', lang) }}</span></article>
       </div>
     </section>
 
     <section class="login-panel card glass">
-      <h2>{{ t.login if t.login else 'Iniciar sesión' }}</h2>
+      <div class="brand-lockup compact">
+        <img src="{{ branding_assets.brand_logo }}" alt="Media by Snake Mafia" class="brand-logo small" />
+        <h2>{{ t.login if t.login else 'Iniciar sesión' }}</h2>
+      </div>
       <div class="row"><a class="btn ghost" href="/set-lang/es?next=/login">ES</a><a class="btn ghost" href="/set-lang/en?next=/login">EN</a><a class="btn ghost" href="/set-lang/pt?next=/login">PT</a></div>
       <p class="small">Superuser entra con credenciales de entorno. Los clientes usan su correo y contraseña asignados.</p>
       {% if error %}<div class="error-box">{{ error }}</div>{% endif %}

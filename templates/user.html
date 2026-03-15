@@ -10,7 +10,7 @@
   <div class="container">
     <div class="topbar">
       <div>
-        <p class="h1">{{ t.user_page_title }}: {{ user.nombre }}</p>
+        <div class="brand-lockup compact"><img src="{{ branding_assets.brand_logo }}" alt="Media by Snake Mafia" class="brand-logo small" /><p class="h1">{{ t.user_page_title }}: {{ user.nombre }}</p></div>
         <p class="sub">{{ t.get('welcome_excited','¡Bienvenid@! 🚀') }} {{ t.get('welcome_tabs_hint','En estos tabs está toda tu configuración para crear y publicar más rápido.') }}</p>
       </div>
       <div class="row">
@@ -35,15 +35,40 @@
       {% endif %}
     {% endwith %}
 
+
+    {% if save_status == '1' %}
+      <section class="card glass">
+        <div class="flash success">{{ t.get('save_banner_ok', '✅ Cambios guardados.') }}</div>
+      </section>
+    {% elif save_status == '0' %}
+      <section class="card glass">
+        <div class="flash error">{{ t.get('save_banner_error', '❌ Error al guardar. Revisa los campos e intenta nuevamente.') }}</div>
+      </section>
+    {% endif %}
+
+    <section class="card glass snake-banner-card">
+      <section class="snake-banner" aria-label="Snake loading video banner">
+        <div class="snake-social-bg" aria-hidden="true"><span>▶ YouTube</span><span>♪ TikTok</span><span>◎ Instagram</span><span>f Facebook</span></div>
+        <div class="snake-banner-row"><strong>Snake Render Engine</strong><small>Cargando flujo de publicación...</small></div>
+        <div class="snake-loader-track"><span class="snake-loader-line"></span><span class="snake-loader-head">🐍</span></div>
+      </section>
+    </section>
+
+    <section class="card glass tech-snapshot">
+      <h2>Tecnologías activas y redes asociadas</h2>
+      <p class="small">Este resumen cambia automáticamente según tu configuración actual.</p>
+      <div id="techCards" class="tech-cards-grid"></div>
+    </section>
+
     <section class="card glass hero-strip enhanced-hero">
       <div>
         <h2>{{ t.get('hero_user_title','¡Tu estudio está listo para despegar!') }}</h2>
         <p class="sub">{{ t.get('hero_user_subtitle','Configura IA, subidas y redes en un solo lugar, paso a paso.') }}</p>
       </div>
       <div class="hero-mini-grid">
-        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?auto=format&fit=crop&w=900&q=80')"></div>
-        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=900&q=80')"></div>
-        <div class="mini-shot" style="background-image:url('https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?auto=format&fit=crop&w=900&q=80')"></div>
+        <div class="mini-shot" style="background-image:url('{{ branding_assets.user_hero_1 }}')"></div>
+        <div class="mini-shot" style="background-image:url('{{ branding_assets.user_hero_2 }}')"></div>
+        <div class="mini-shot" style="background-image:url('{{ branding_assets.user_hero_3 }}')"></div>
       </div>
     </section>
 
@@ -340,11 +365,64 @@
     });
   }
 
+  function renderTechCards() {
+    const techCards = document.getElementById('techCards');
+    if (!techCards) return;
+
+    const voice = document.querySelector('select[name="voice_provider"]')?.value || 'auto';
+    const video = document.querySelector('select[name="video_provider"]')?.value || 'auto';
+    const script = document.querySelector('select[name="script_provider"]')?.value || 'local';
+
+    const techMap = {
+      elevenlabs: { icon: '11', label: 'ElevenLabs', desc: 'Voz premium para narración IA.' },
+      gtts: { icon: 'GT', label: 'gTTS', desc: 'Motor de voz gratuito y rápido.' },
+      openai_tts: { icon: 'AI', label: 'OpenAI TTS', desc: 'Sintetizador neural de OpenAI.' },
+      azure_tts: { icon: 'AZ', label: 'Azure TTS', desc: 'Voz de Microsoft Azure.' },
+      coqui_tts: { icon: 'CQ', label: 'Coqui TTS', desc: 'Stack open-source de voz.' },
+      pixabay: { icon: 'PX', label: 'Pixabay', desc: 'Biblioteca de clips para fondo.' },
+      pexels: { icon: 'PE', label: 'Pexels', desc: 'Stock visual para videos verticales.' },
+      runway: { icon: 'RW', label: 'Runway', desc: 'Generación/edición de video IA.' },
+      pika: { icon: 'PK', label: 'Pika', desc: 'Clips IA estilo creativo.' },
+      mixkit: { icon: 'MK', label: 'Mixkit', desc: 'Recursos de video adicionales.' },
+      library: { icon: 'LB', label: 'Library', desc: 'Recursos locales del sistema.' },
+      fallback: { icon: 'FB', label: 'Fallback', desc: 'Motor de respaldo automático.' },
+      openai: { icon: 'OA', label: 'OpenAI Script', desc: 'Guiones con IA generativa.' },
+      local: { icon: 'LC', label: 'Script Local', desc: 'Ideas desde archivos locales.' },
+      auto: { icon: 'AT', label: 'Auto', desc: 'Selección inteligente automática.' }
+    };
+
+    const cards = [
+      { key: voice, kind: 'Voz' },
+      { key: video, kind: 'Video' },
+      { key: script, kind: 'Guion' }
+    ].map(item => {
+      const info = techMap[item.key] || { icon: '??', label: item.key, desc: 'Configuración personalizada.' };
+      return `<article class="tech-card"><span class="tech-icon">${info.icon}</span><div><small>${item.kind}</small><h4>${info.label}</h4><p>${info.desc}</p></div></article>`;
+    });
+
+    const platforms = [
+      { key: 'youtube', name: 'YouTube', icon: '▶', active: !!document.querySelector('input[name="youtube_activo"]')?.checked },
+      { key: 'tiktok', name: 'TikTok', icon: '♪', active: !!document.querySelector('input[name="tiktok_activo"]')?.checked },
+      { key: 'instagram', name: 'Instagram', icon: '◎', active: !!document.querySelector('input[name="instagram_activo"]')?.checked },
+      { key: 'facebook', name: 'Facebook', icon: 'f', active: !!document.querySelector('input[name="facebook_activo"]')?.checked }
+    ].filter(p => p.active)
+      .map(p => `<article class="tech-card social"><span class="tech-icon">${p.icon}</span><div><small>Red activa</small><h4>${p.name}</h4><p>Publicación habilitada para esta cuenta.</p></div></article>`);
+
+    techCards.innerHTML = [...cards, ...platforms].join('');
+  }
+
   ['voice_provider','video_provider','script_provider'].forEach(name => {
     const el = document.querySelector(`select[name="${name}"]`);
-    if (el) el.addEventListener('change', toggleProviderKeys);
+    if (el) el.addEventListener('change', () => { toggleProviderKeys(); renderTechCards(); });
   });
+
+  ['youtube_activo','tiktok_activo','instagram_activo','facebook_activo'].forEach(name => {
+    const el = document.querySelector(`input[name="${name}"]`);
+    if (el) el.addEventListener('change', renderTechCards);
+  });
+
   toggleProviderKeys();
+  renderTechCards();
 
   document.querySelectorAll('.help-btn').forEach(btn => btn.addEventListener('click', () => {
     document.getElementById('helpTitle').textContent = btn.dataset.title;

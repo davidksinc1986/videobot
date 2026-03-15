@@ -13,7 +13,7 @@
   <div class="container">
     <div class="topbar">
       <div class="brand">
-        <img class="brand-logo" src="/static/bot1.png" alt="bot">
+        <img class="brand-logo" src="{{ branding_assets.admin_icon }}" alt="bot">
         <div>
           <p class="h1">{{ t.app_title }}</p>
           <p class="sub">{{ t.app_subtitle }}</p>
@@ -70,6 +70,37 @@
           <form class="inline-form" action="/admin/limpiar/temp" method="POST"><button class="btn ghost" type="submit">🧹 {{ t.clear_temp_btn }}</button></form>
         </div>
       </div>
+
+      <div class="card quick-actions-card glass branding-manager-card">
+        <h2>🎨 Gestor visual de branding</h2>
+        <p class="small">Cambia icono, logo y hero images con preview inmediato (sin depender solo del nombre de archivo).</p>
+        <div class="branding-grid" id="brandingGrid">
+          {% for slot, label in [
+            ('brand_logo','Logo principal'),
+            ('admin_icon','Icono admin'),
+            ('login_slide_1','Login slide 1'),
+            ('login_slide_2','Login slide 2'),
+            ('login_slide_3','Login slide 3'),
+            ('login_slide_4','Login slide 4'),
+            ('login_slide_5','Login slide 5'),
+            ('user_hero_1','User hero 1'),
+            ('user_hero_2','User hero 2'),
+            ('user_hero_3','User hero 3')
+          ] %}
+          <form class="branding-item" onsubmit="return uploadBrandingImage(event, '{{ slot }}')">
+            <div class="branding-preview-wrap">
+              <img class="branding-preview" id="preview-{{ slot }}" src="{{ branding_assets[slot] }}" alt="{{ label }}">
+            </div>
+            <label>{{ label }}</label>
+            <input class="input" type="file" accept="image/*,.svg" id="file-{{ slot }}" required>
+            <div class="action-group">
+              <button class="btn ghost" type="submit">Actualizar</button>
+              <button class="btn danger" type="button" onclick="resetBrandingImage('{{ slot }}')">Reset</button>
+            </div>
+          </form>
+          {% endfor %}
+        </div>
+      </div>
       {% endif %}
     </div>
 
@@ -115,5 +146,46 @@
       {% endif %}
     </section>
   </div>
+
+<script>
+async function uploadBrandingImage(ev, slot){
+  ev.preventDefault();
+  const input = document.getElementById(`file-${slot}`);
+  const file = input?.files?.[0];
+  if (!file) return false;
+
+  const formData = new FormData();
+  formData.append('file', file);
+  const resp = await fetch(`/admin/branding/upload/${slot}`, {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    body: formData
+  });
+  if (!resp.ok) {
+    alert('No se pudo actualizar imagen');
+    return false;
+  }
+  const data = await resp.json();
+  const preview = document.getElementById(`preview-${slot}`);
+  if (preview) preview.src = `${data.url}?v=${Date.now()}`;
+  input.value = '';
+  return false;
+}
+
+async function resetBrandingImage(slot){
+  const resp = await fetch(`/admin/branding/reset/${slot}`, {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  });
+  if (!resp.ok) {
+    alert('No se pudo resetear imagen');
+    return;
+  }
+  const data = await resp.json();
+  const preview = document.getElementById(`preview-${slot}`);
+  if (preview) preview.src = `${data.url}?v=${Date.now()}`;
+}
+</script>
+
 </body>
 </html>

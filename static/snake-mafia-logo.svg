@@ -1,0 +1,17 @@
+<svg width="220" height="52" viewBox="0 0 220 52" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Media by Snake Mafia logo">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="220" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#35f3d2"/>
+      <stop offset="0.5" stop-color="#9d5bff"/>
+      <stop offset="1" stop-color="#1d1430"/>
+    </linearGradient>
+    <linearGradient id="snake" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#43ffd7"/>
+      <stop offset="1" stop-color="#7b4cff"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="218" height="50" rx="14" fill="#0c0a16" stroke="url(#g1)" stroke-width="2"/>
+  <path d="M26 13c-6 0-10 4-10 9 0 4 3 7 8 8 4 1 6 2 6 4 0 2-2 3-5 3-3 0-6-1-8-3" stroke="url(#snake)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="31" cy="13" r="2.2" fill="#43ffd7"/>
+  <text x="45" y="31" fill="#eafcfd" font-family="Inter, Segoe UI, sans-serif" font-weight="700" font-size="19">Media by Snake Mafia</text>
+</svg>
