@@ -46,20 +46,6 @@
       </section>
     {% endif %}
 
-    <section class="card glass snake-banner-card">
-      <section class="snake-banner" aria-label="Snake loading video banner">
-        <div class="snake-social-bg" aria-hidden="true"><span>▶ YouTube</span><span>♪ TikTok</span><span>◎ Instagram</span><span>f Facebook</span></div>
-        <div class="snake-banner-row"><strong>Snake Render Engine</strong><small>Cargando flujo de publicación...</small></div>
-        <div class="snake-loader-track"><span class="snake-loader-line"></span><span class="snake-loader-head">🐍</span></div>
-      </section>
-    </section>
-
-    <section class="card glass tech-snapshot">
-      <h2>Tecnologías activas y redes asociadas</h2>
-      <p class="small">Este resumen cambia automáticamente según tu configuración actual.</p>
-      <div id="techCards" class="tech-cards-grid"></div>
-    </section>
-
     <section class="card glass hero-strip enhanced-hero">
       <div>
         <h2>{{ t.get('hero_user_title','¡Tu estudio está listo para despegar!') }}</h2>
@@ -244,6 +230,13 @@
         {% endfor %}
       </div>
     </div>
+
+    <section class="card glass tech-snapshot">
+      <h2>Tecnologías activas y redes asociadas</h2>
+      <p class="small">Este resumen cambia automáticamente según tu configuración actual.</p>
+      <div id="techCards" class="tech-cards-grid"></div>
+    </section>
+
   </div>
 
   <div id="helpModal" class="help-modal" style="display:none;"><div class="help-modal-card"><h3 id="helpTitle"></h3><p id="helpBody"></p><button class="btn" type="button" onclick="closeHelp()">OK</button></div></div>

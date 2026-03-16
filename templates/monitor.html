@@ -31,6 +31,29 @@
       </div>
     </div>
 
+
+    <div class="card users-monitor-card monitor-alarm-card">
+      <h2>🚨 Centro de alarmas</h2>
+      <p class="small">Vista clara de incidencias: qué pasó, a quién afecta y dónde revisar para resolver rápido.</p>
+      {% if not alerts %}
+        <div class="monitor-empty-state">✅ Sin alarmas críticas por ahora.</div>
+      {% else %}
+        <div class="monitor-alerts-grid">
+          {% for a in alerts %}
+          <article class="monitor-alert {{ a.severity }}">
+            <div class="monitor-alert-top">
+              <span class="badge"><span class="dot"></span>{{ a.severity|upper }}</span>
+              <span class="small">{{ a.at }}</span>
+            </div>
+            <h3>{{ a.title }}</h3>
+            <p class="small"><b>Nota:</b> {{ a.message }}</p>
+            <p class="small"><b>Dónde revisar:</b> {{ a.where_to_check }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
     <div class="card users-monitor-card"> <!-- Added a specific class for this card -->
       <h2>Usuarios</h2>
 
@@ -64,6 +87,27 @@
                 -
               {% endif %}
             </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card users-monitor-card">
+      <h2>Log global de eventos</h2>
+      <p class="small">Reporte extra: actividad reciente de toda la app (acciones, cambios, jobs y errores).</p>
+      {% if not events %}
+        <p class="small">No hay eventos aún.</p>
+      {% else %}
+        <div class="events monitor-events-log">
+          {% for ev in events %}
+          <div class="event">
+            <div class="event-top">
+              <span class="badge"><span class="dot"></span>{{ ev.kind|replace("_"," ")|title }}</span>
+              <span class="small">{{ ev.at }}</span>
+            </div>
+            <div><b>{{ ev.user or 'sistema' }}</b>: {{ ev.message }}</div>
+            <div class="small"><b>Dónde revisar:</b> {{ ev.where_to_check }}</div>
           </div>
           {% endfor %}
         </div>
