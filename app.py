@@ -5,6 +5,7 @@ import traceback
 import threading
 import shutil
 import subprocess
+import re
 import unicodedata
 from datetime import datetime
 from functools import wraps
@@ -31,7 +32,7 @@ def _load_local_env(path: str = ".env"):
 _load_local_env()
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session, flash
+from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session, flash, g
 
 from config import USUARIOS_DIR, TEMP_DIR, VIDEOS_DIR, APP_PORT
 from storage import init_db, migrate_json_users_if_needed, load_user as db_load_user, save_user as db_save_user, list_users as db_list_users, user_exists, delete_user
@@ -55,6 +56,7 @@ os.makedirs(SESSIONS_DIR, exist_ok=True)
 BRANDING_DIR = os.path.join(BASE_DIR, "static", "branding")
 os.makedirs(BRANDING_DIR, exist_ok=True)
 BRANDING_META_PATH = os.path.join(BASE_DIR, "branding_assets.json")
+APP_EVENTS_PATH = os.path.join(TEMP_DIR, "app_events.jsonl")
 
 DEFAULT_BRANDING_ASSETS = {
     "brand_logo": "/static/snake-mafia-logo.svg",
@@ -109,6 +111,32 @@ _scheduler_lock = threading.Lock()
 @app.context_processor
 def inject_branding_assets():
     return {"branding_assets": get_branding_assets()}
+
+
+@app.before_request
+def _track_request_start():
+    g._request_started_at = time.time()
+
+
+@app.after_request
+def _track_request_end(response):
+    try:
+        path = request.path or ""
+        if not path.startswith("/static") and not path.startswith("/favicon"):
+            duration_ms = int((time.time() - getattr(g, "_request_started_at", time.time())) * 1000)
+            user_name = session.get("auth", {}).get("user") if isinstance(session.get("auth"), dict) else None
+            _append_global_event(
+                "request",
+                f"{request.method} {path} → {response.status_code}",
+                user_name,
+                {
+                    "duration_ms": duration_ms,
+                    "query": request.query_string.decode("utf-8", errors="ignore")[:200],
+                },
+            )
+    except Exception:
+        pass
+    return response
 
 
 # ----------------------------
@@ -833,6 +861,47 @@ def _short_error(tb: str, max_chars: int = 1400) -> str:
     return tb[-max_chars:]
 
 
+def _append_global_event(kind: str, message: str, user: str | None = None, extra=None):
+    ev = {
+        "ts": int(time.time()),
+        "at": _now_str(),
+        "kind": kind,
+        "message": message,
+    }
+    if user:
+        ev["user"] = user
+    if extra and isinstance(extra, dict):
+        ev["extra"] = extra
+    try:
+        with open(APP_EVENTS_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(ev, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+def _load_global_events(limit: int = 300) -> list[dict]:
+    if not os.path.exists(APP_EVENTS_PATH):
+        return []
+    rows = []
+    try:
+        with open(APP_EVENTS_PATH, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    ev = json.loads(line)
+                except Exception:
+                    continue
+                if isinstance(ev, dict):
+                    rows.append(ev)
+    except Exception:
+        return []
+    rows = rows[-limit:]
+    rows.sort(key=lambda e: int(e.get("ts", 0)), reverse=True)
+    return rows
+
+
 def _append_event(user: dict, kind: str, message: str, extra=None):
     ev = {
         "ts": int(time.time()),
@@ -851,6 +920,7 @@ def _append_event(user: dict, kind: str, message: str, extra=None):
     if len(events) > 200:
         events = events[-200:]
     user["events"] = events
+    _append_global_event(kind, message, user.get("nombre"), extra)
 
 
 # ✅ FIX NICHO: normalizar + validar contra lista real
@@ -1561,6 +1631,100 @@ def home():
     )
 
 
+def _extract_traceback_hint(text: str) -> str:
+    raw = (text or "").strip()
+    if not raw:
+        return ""
+    m = re.search(r'File "([^"]+)", line (\d+)', raw)
+    if m:
+        return f"Archivo {m.group(1)} (línea {m.group(2)})"
+    return ""
+
+
+def _event_to_alarm(event: dict) -> dict:
+    kind = str(event.get("kind") or "evento").strip().lower()
+    message = str(event.get("message") or "Sin mensaje").strip()
+    user = event.get("user") or "sistema"
+    severity = "info"
+    where = "Panel de monitoreo"
+
+    msg_l = message.lower()
+    if kind.endswith("_error") or "error" in kind or "fall" in msg_l:
+        severity = "error"
+    elif kind.endswith("_warning") or "warning" in kind:
+        severity = "warning"
+
+    if kind == "request":
+        status = None
+        m = re.search(r'→\s*(\d+)', message)
+        if m:
+            status = int(m.group(1))
+        if status and status >= 500:
+            severity = "error"
+            where = "Logs del servidor Flask (endpoint con error 5xx)"
+        elif status and status >= 400:
+            severity = "warning"
+            where = "Ruta solicitada y permisos de sesión"
+        else:
+            severity = "info"
+            where = "Tráfico normal de la app"
+    elif kind.startswith("upload"):
+        where = f"Usuario {user} → pestaña de la red social y credenciales"
+    elif kind.startswith("login"):
+        where = f"Usuario {user} → sesión/login social (cookies o storage_state)"
+    elif kind.startswith("job") or kind.startswith("generate"):
+        where = f"Usuario {user} → generador y scheduler"
+    elif kind == "config":
+        where = f"Usuario {user} → formulario de configuración"
+
+    return {
+        "ts": int(event.get("ts", 0) or 0),
+        "at": event.get("at") or "-",
+        "user": user,
+        "kind": kind,
+        "severity": severity,
+        "title": f"{kind.replace('_', ' ').title()} · {user}",
+        "message": message,
+        "where_to_check": where,
+    }
+
+
+def _build_monitor_alerts(usuarios: list[dict], events: list[dict], limit: int = 12) -> list[dict]:
+    alerts = []
+
+    for u in usuarios:
+        err = (u.get("ultimo_error") or "").strip()
+        if not err:
+            continue
+        alerts.append({
+            "ts": int(u.get("last_run_ts") or 0),
+            "at": u.get("ultimo_run") or "-",
+            "user": u.get("nombre") or "usuario",
+            "kind": "ultimo_error",
+            "severity": "error",
+            "title": f"Error activo · {u.get('nombre')}",
+            "message": _short_error(err, 240),
+            "where_to_check": _extract_traceback_hint(err) or f"Usuario {u.get('nombre')} → pestaña de plataforma / credenciales",
+        })
+
+    for ev in events[:250]:
+        alarm = _event_to_alarm(ev)
+        if alarm["severity"] in ("error", "warning"):
+            alerts.append(alarm)
+
+    seen = set()
+    unique = []
+    for a in sorted(alerts, key=lambda x: x.get("ts", 0), reverse=True):
+        key = (a.get("user"), a.get("kind"), a.get("message"))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(a)
+        if len(unique) >= limit:
+            break
+    return unique
+
+
 @app.route("/monitor")
 @login_required
 @superuser_required
@@ -1568,20 +1732,11 @@ def monitor():
     lang = get_lang()
     usuarios = [ensure_defaults(u) for u in list_users()]
 
-    events = []
-    for u in usuarios:
-        name = u.get("nombre")
-        evs = u.get("events", [])
-        if isinstance(evs, list):
-            for ev in evs[-50:]:
-                e = dict(ev)
-                e["user"] = name
-                events.append(e)
+    raw_events = _load_global_events(limit=400)
+    events = [_event_to_alarm(ev) for ev in raw_events]
+    alerts = _build_monitor_alerts(usuarios, raw_events, limit=12)
 
-    events.sort(key=lambda e: int(e.get("ts", 0)), reverse=True)
-    events = events[:200]
-
-    return render_template("monitor.html", usuarios=usuarios, events=events, lang=lang, t=tr())
+    return render_template("monitor.html", usuarios=usuarios, events=events, alerts=alerts, lang=lang, t=tr())
 
 
 @app.route("/crear", methods=["POST"])
