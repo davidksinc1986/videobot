@@ -20,16 +20,20 @@ def _conn() -> sqlite3.Connection:
 
 def init_db() -> None:
     with _DB_LOCK:
-        with _conn() as con:
-            con.execute(
-                """
-                CREATE TABLE IF NOT EXISTS users (
-                    name TEXT PRIMARY KEY,
-                    payload TEXT NOT NULL,
-                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        con = _conn()
+        try:
+            with con:
+                con.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS users (
+                        name TEXT PRIMARY KEY,
+                        payload TEXT NOT NULL,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """
                 )
-                """
-            )
+        finally:
+            con.close()
 
 
 def save_user(user: dict) -> None:
@@ -41,23 +45,30 @@ def save_user(user: dict) -> None:
     payload = json.dumps(user, ensure_ascii=False)
 
     with _DB_LOCK:
-        with _conn() as con:
-            con.execute(
-                """
-                INSERT INTO users(name, payload, updated_at)
-                VALUES(?, ?, CURRENT_TIMESTAMP)
-                ON CONFLICT(name) DO UPDATE SET
-                    payload=excluded.payload,
-                    updated_at=CURRENT_TIMESTAMP
-                """,
-                (name, payload),
-            )
+        con = _conn()
+        try:
+            with con:
+                con.execute(
+                    """
+                    INSERT INTO users(name, payload, updated_at)
+                    VALUES(?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(name) DO UPDATE SET
+                        payload=excluded.payload,
+                        updated_at=CURRENT_TIMESTAMP
+                    """,
+                    (name, payload),
+                )
+        finally:
+            con.close()
 
 
 def load_user(name: str) -> dict:
     init_db()
-    with _conn() as con:
+    con = _conn()
+    try:
         row = con.execute("SELECT payload FROM users WHERE name = ?", (name,)).fetchone()
+    finally:
+        con.close()
     if not row:
         raise FileNotFoundError(name)
     return json.loads(row[0])
@@ -65,8 +76,11 @@ def load_user(name: str) -> dict:
 
 def list_users() -> list[dict]:
     init_db()
-    with _conn() as con:
+    con = _conn()
+    try:
         rows = con.execute("SELECT payload FROM users ORDER BY LOWER(name) ASC").fetchall()
+    finally:
+        con.close()
     users = []
     for (payload,) in rows:
         try:
@@ -78,15 +92,22 @@ def list_users() -> list[dict]:
 
 def user_exists(name: str) -> bool:
     init_db()
-    with _conn() as con:
+    con = _conn()
+    try:
         row = con.execute("SELECT 1 FROM users WHERE name = ?", (name,)).fetchone()
+    finally:
+        con.close()
     return bool(row)
 
 
 def delete_user(name: str) -> None:
     init_db()
-    with _conn() as con:
-        con.execute("DELETE FROM users WHERE name = ?", (name,))
+    con = _conn()
+    try:
+        with con:
+            con.execute("DELETE FROM users WHERE name = ?", (name,))
+    finally:
+        con.close()
 
 
 def migrate_json_users_if_needed() -> int:

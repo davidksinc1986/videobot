@@ -1584,10 +1584,14 @@ def _generate_tts(user: dict, texto: str, out_mp3: str) -> None:
     for provider in providers:
         try:
             if provider == "elevenlabs":
+                from voz_elevenlabs import generar_audio
                 eleven_key = (cred.get("elevenlabs_api_key") or "").strip()
                 eleven_voice = (cred.get("eleven_voice_id") or "").strip()
                 if eleven_key and eleven_voice:
-                    generar_audio(texto, out_mp3, api_key=eleven_key, voice_id=eleven_voice)
+                    tmp_audio = generar_audio(texto, api_key=eleven_key, voice_id=eleven_voice)
+                    if os.path.exists(tmp_audio):
+                        import shutil
+                        shutil.copy2(tmp_audio, out_mp3)
                     return
             elif provider == "gtts":
                 tts = gTTS(text=texto, lang=_gtts_lang(user.get("idioma", "es")))

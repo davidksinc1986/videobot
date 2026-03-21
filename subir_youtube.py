@@ -34,14 +34,16 @@ def _resolve_token_path(user: dict | None, token_path: str | None) -> str:
     if token_path:
         return token_path
 
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
     if user and isinstance(user, dict):
         nombre = (user.get("nombre") or "").strip()
         if nombre.lower() == "david":
-            return "token.pickle"
+            return os.path.join(base_dir, "token.pickle")
         if nombre:
-            return os.path.join("sessions", nombre, "youtube", "token.pickle")
+            return os.path.join(base_dir, "sessions", nombre, "youtube", "token.pickle")
 
-    return "token.pickle"
+    return os.path.join(base_dir, "token.pickle")
 
 
 def _load_credentials(token_file: str):

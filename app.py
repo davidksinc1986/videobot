@@ -1225,7 +1225,7 @@ def _call_youtube_uploader(video_path: str, titulo: str, user: dict) -> bool:
     from subir_youtube import subir_youtube
 
     if is_admin_legacy_user(user):
-        return bool(subir_youtube(video_path, titulo))
+        return bool(subir_youtube(video_path, titulo, user=user))
 
     method = (user.get("youtube_auth_method") or "token_upload").strip()
     if method != "token_upload":
@@ -1235,28 +1235,7 @@ def _call_youtube_uploader(video_path: str, titulo: str, user: dict) -> bool:
     if not os.path.exists(user_token):
         raise FileNotFoundError(f"Falta token.pickle del usuario en: {user_token}")
 
-    global_token = os.path.join(BASE_DIR, "token.pickle")
-    backup_token = os.path.join(BASE_DIR, "token.pickle.bak_user")
-    had_global = os.path.exists(global_token)
-
-    if had_global:
-        shutil.copy2(global_token, backup_token)
-    shutil.copy2(user_token, global_token)
-
-    try:
-        return bool(subir_youtube(video_path, titulo))
-    finally:
-        try:
-            if os.path.exists(global_token):
-                os.remove(global_token)
-        except:
-            pass
-        try:
-            if had_global and os.path.exists(backup_token):
-                shutil.copy2(backup_token, global_token)
-                os.remove(backup_token)
-        except:
-            pass
+    return bool(subir_youtube(video_path, titulo, user=user))
 
 
 def _call_social_uploader(module_name: str, func_candidates: list[str], video_path: str, user: dict) -> bool:
@@ -1607,6 +1586,21 @@ def health():
         "static_dir": os.path.abspath("static"),
         "templates_dir": os.path.abspath("templates"),
     })
+
+from flask import send_from_directory
+
+@app.route("/videos/<path:filename>")
+@login_required
+def ver_video(filename):
+    # Validar acceso básico asegurando que solo los admins o dueños puedan verlo
+    auth = current_auth()
+    if auth.get("role") == "tenant":
+        user_name = auth.get("user", "")
+        # Asume que los videos empiezan con el nombre del usuario
+        if not filename.startswith(_safe_name(user_name) + "_"):
+            abort(403, "No puedes ver videos de otros usuarios")
+    
+    return send_from_directory(VIDEOS_DIR, filename)
 
 
 @app.route("/")

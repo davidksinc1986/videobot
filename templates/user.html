@@ -214,7 +214,10 @@
           <div class="event"><b>Modo scheduler:</b> {% if user.schedule_mode == "window" %}Ventana {{ user.ventana_inicio }} - {{ user.ventana_fin }}{% else %}24/7{% endif %}</div>
           <div class="event"><b>Formato de título:</b> Consejo por nicho + autor + secuencia (ej. #{{ (user.title_counter or 0) + 1 }})</div>
           <div class="event"><b>{{ t.last_run }}:</b> {{ user.ultimo_run if user.ultimo_run else '-' }}</div>
-          <div class="event"><b>{{ t.last_video }}:</b> <span style="word-break:break-word;">{{ user.ultimo_video if user.ultimo_video else '-' }}</span></div>
+          {% if user.ultimo_error %}
+          <div class="event" style="color: red;"><b>{{ t.last_error if t.last_error else 'Último error' }}:</b> {{ user.ultimo_error }}</div>
+          {% endif %}
+          <div class="event"><b>{{ t.last_video }}:</b> <span style="word-break:break-word;">{% if user.ultimo_video %}<a href="/videos/{{ user.ultimo_video.split('/')[-1] }}" target="_blank">Ver video</a>{% else %}-{% endif %}</span></div>
         </div>
 
         <div class="hr"></div>
