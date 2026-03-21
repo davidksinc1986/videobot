@@ -7,3 +7,9 @@ videos/
 sessions/
 token.pickle
 *.mp4
+
+usuarios/
+final_diff.txt
+git_diff.txt
+output.txt
+=*
