@@ -1,144 +1,95 @@
 import json
-import os
-import sqlite3
-import threading
-from typing import Optional
+from models import db, User
 
-from config import DB_PATH, USUARIOS_DIR
+# La función init_db ya no es necesaria para la creación de tablas,
+# pero se mantiene por si es llamada desde código antiguo.
+def init_db():
+    pass
 
-_DB_LOCK = threading.Lock()
-
-
-def _conn() -> sqlite3.Connection:
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    c = sqlite3.connect(DB_PATH, timeout=30)
-    c.execute("PRAGMA journal_mode=WAL;")
-    c.execute("PRAGMA synchronous=NORMAL;")
-    c.execute("PRAGMA foreign_keys=ON;")
-    return c
-
-
-def init_db() -> None:
-    with _DB_LOCK:
-        con = _conn()
-        try:
-            with con:
-                con.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS users (
-                        name TEXT PRIMARY KEY,
-                        payload TEXT NOT NULL,
-                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                    )
-                    """
-                )
-        finally:
-            con.close()
-
-
-def save_user(user: dict) -> None:
-    name = (user or {}).get("nombre", "").strip()
-    if not name:
-        raise ValueError("User payload must include 'nombre'")
-
-    init_db()
-    payload = json.dumps(user, ensure_ascii=False)
-
-    with _DB_LOCK:
-        con = _conn()
-        try:
-            with con:
-                con.execute(
-                    """
-                    INSERT INTO users(name, payload, updated_at)
-                    VALUES(?, ?, CURRENT_TIMESTAMP)
-                    ON CONFLICT(name) DO UPDATE SET
-                        payload=excluded.payload,
-                        updated_at=CURRENT_TIMESTAMP
-                    """,
-                    (name, payload),
-                )
-        finally:
-            con.close()
-
+def save_user(user_data: dict):
+    """
+    Guarda o actualiza un usuario en la base de datos usando SQLAlchemy.
+    Requiere un contexto de aplicación Flask activo.
+    """
+    if not isinstance(user_data, dict) or not user_data.get("nombre"):
+        raise ValueError("Se requiere un diccionario con 'nombre' para guardar el usuario.")
+    
+    name = user_data["nombre"]
+    user = db.session.get(User, name)
+    
+    if user:
+        user.payload = user_data
+    else:
+        user = User.from_dict(user_data)
+        db.session.add(user)
+        
+    db.session.commit()
 
 def load_user(name: str) -> dict:
-    init_db()
-    con = _conn()
-    try:
-        row = con.execute("SELECT payload FROM users WHERE name = ?", (name,)).fetchone()
-    finally:
-        con.close()
-    if not row:
-        raise FileNotFoundError(name)
-    return json.loads(row[0])
-
+    """
+    Carga un usuario de la base de datos usando SQLAlchemy.
+    Requiere un contexto de aplicación Flask activo.
+    """
+    user = db.session.get(User, name)
+    if user:
+        return user.to_dict()
+    raise FileNotFoundError(f"Usuario '{name}' no encontrado.")
 
 def list_users() -> list[dict]:
-    init_db()
-    con = _conn()
-    try:
-        rows = con.execute("SELECT payload FROM users ORDER BY LOWER(name) ASC").fetchall()
-    finally:
-        con.close()
-    users = []
-    for (payload,) in rows:
-        try:
-            users.append(json.loads(payload))
-        except Exception:
-            continue
-    return users
-
+    """
+    Lista todos los usuarios de la base de datos.
+    Requiere un contexto de aplicación Flask activo.
+    """
+    users = User.query.order_by(User.name).all()
+    return [user.to_dict() for user in users]
 
 def user_exists(name: str) -> bool:
-    init_db()
-    con = _conn()
-    try:
-        row = con.execute("SELECT 1 FROM users WHERE name = ?", (name,)).fetchone()
-    finally:
-        con.close()
-    return bool(row)
+    """
+    Verifica si un usuario existe.
+    Requiere un contexto de aplicación Flask activo.
+    """
+    return db.session.query(User.name).filter_by(name=name).first() is not None
 
-
-def delete_user(name: str) -> None:
-    init_db()
-    con = _conn()
-    try:
-        with con:
-            con.execute("DELETE FROM users WHERE name = ?", (name,))
-    finally:
-        con.close()
-
+def delete_user(name: str):
+    """
+    Elimina un usuario.
+    Requiere un contexto de aplicación Flask activo.
+    """
+    user = db.session.get(User, name)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
 
 def migrate_json_users_if_needed() -> int:
-    """Import legacy users/*.json into SQLite if they don't exist there."""
-    init_db()
-    if not os.path.isdir(USUARIOS_DIR):
-        return 0
+    """
+    Migra usuarios de archivos JSON a la base de datos si aún no existen.
+    Esta función es especial y crea su propio contexto de app, por lo que
+    debe ser llamada desde el proceso principal de la aplicación al iniciar.
+    """
+    from app_context import create_app_for_worker
+    app = create_app_for_worker()
+    with app.app_context():
+        db.create_all()
 
-    imported = 0
-    for fn in os.listdir(USUARIOS_DIR):
-        if not fn.endswith(".json"):
-            continue
-        path = os.path.join(USUARIOS_DIR, fn)
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            name = (data or {}).get("nombre", "").strip()
-            if not name or user_exists(name):
-                continue
-            save_user(data)
-            imported += 1
-        except Exception:
-            continue
-    return imported
+        from config import USUARIOS_DIR
+        import os
 
+        if not os.path.isdir(USUARIOS_DIR):
+            return 0
 
-def export_user_json(name: str, dest_path: Optional[str] = None) -> str:
-    """Compatibility helper for modules that still need a JSON file path."""
-    user = load_user(name)
-    final_path = dest_path or os.path.join(USUARIOS_DIR, f"{name}.json")
-    os.makedirs(os.path.dirname(final_path), exist_ok=True)
-    with open(final_path, "w", encoding="utf-8") as f:
-        json.dump(user, f, ensure_ascii=False, indent=2)
-    return final_path
+        imported_count = 0
+        for filename in os.listdir(USUARIOS_DIR):
+            if filename.endswith(".json"):
+                name = filename[:-5]
+                if not user_exists(name):
+                    try:
+                        filepath = os.path.join(USUARIOS_DIR, filename)
+                        with open(filepath, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                        data["nombre"] = name
+                        save_user(data)
+                        imported_count += 1
+                        print(f"Migrated user '{name}' from JSON to database.")
+                    except Exception as e:
+                        print(f"Error migrating user {name}: {e}")
+        return imported_count

@@ -1,0 +1,956 @@
+{
+  "nombre": "David",
+  "activo": true,
+  "nicho": "liderazgo",
+  "voz": "premium",
+  "frecuencia_minutos": 90,
+  "youtube_activo": true,
+  "tiktok_activo": true,
+  "instagram_activo": true,
+  "facebook_activo": true,
+  "estado": "error",
+  "ultimo_error": "video_usuario\n    return None\n  File \"<decorator-gen-55>\", line 2, in write_videofile\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/decorators.py\", line 54, in requires_duration\n  File \"<decorator-gen-54>\", line 2, in write_videofile\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/decorators.py\", line 135, in use_clip_fps_by_default\n  File \"<decorator-gen-53>\", line 2, in write_videofile\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/decorators.py\", line 22, in convert_masks_to_RGB\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/video/VideoClip.py\", line 300, in write_videofile\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/video/io/ffmpeg_writer.py\", line 213, in ffmpeg_write_video\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/video/io/ffmpeg_writer.py\", line 129, in __init__\n  File \"/usr/lib/python3.11/subprocess.py\", line 1024, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.11/subprocess.py\", line 1901, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: '/home/davidksinc/videobot/venv/lib/python3.11/site-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v7.0.2'",
+  "ultimo_run": "2026-03-15 20:47:07",
+  "ultimo_video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1773264823.mp4",
+  "last_run_ts": 1773607627,
+  "intervalo_minutos": 90,
+  "activo_scheduler": true,
+  "max_videos_dia": 10,
+  "videos_hoy": 0,
+  "videos_hoy_fecha": "2026-03-15",
+  "ventana_inicio": "08:00",
+  "ventana_fin": "22:00",
+  "idioma": "es",
+  "credenciales": {
+    "pexels_api_key": "",
+    "elevenlabs_api_key": "",
+    "eleven_voice_id": "",
+    "tiktok_client_key": "",
+    "tiktok_client_secret": "",
+    "tiktok_access_token": "",
+    "tiktok_refresh_token": "",
+    "meta_app_id": "",
+    "meta_app_secret": "",
+    "ig_user_id": "",
+    "fb_page_id": "",
+    "meta_long_lived_token": "",
+    "pixabay_api_key": "",
+    "openai_api_key": ""
+  },
+  "hook_final": "No olvide darle al boton de suscribir y darle un like!",
+  "continuar_si_falla": true,
+  "youtube_auth_method": "legacy",
+  "youtube_backend": "api",
+  "tiktok_backend": "playwright",
+  "instagram_backend": "playwright",
+  "facebook_backend": "playwright",
+  "ultimo_upload": {
+    "youtube": {
+      "ok": true,
+      "ts": "2026-03-11 15:35:14",
+      "error": ""
+    },
+    "instagram": {
+      "ok": false,
+      "ts": "2026-03-11 15:35:14",
+      "error": "Traceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/scheduler.py\", line 248, in publish_for_user\n    raise RuntimeError(f\"Instagram backend '{backend}' aún no implementado. Usa selenium por ahora.\")\nRuntimeError: Instagram backend 'playwright' aún no implementado. Usa selenium por ahora."
+    },
+    "facebook": {
+      "ok": false,
+      "ts": "2026-03-11 15:35:14",
+      "error": "Traceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/scheduler.py\", line 263, in publish_for_user\n    raise RuntimeError(f\"Facebook backend '{backend}' aún no implementado. Usa selenium por ahora.\")\nRuntimeError: Facebook backend 'playwright' aún no implementado. Usa selenium por ahora."
+    },
+    "tiktok": {
+      "ok": false,
+      "ts": "2026-03-11 15:35:14",
+      "error": "Traceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/scheduler.py\", line 233, in publish_for_user\n    raise RuntimeError(f\"TikTok backend '{backend}' aún no implementado. Usa selenium por ahora.\")\nRuntimeError: TikTok backend 'playwright' aún no implementado. Usa selenium por ahora."
+    }
+  },
+  "upload_status": {
+    "youtube": {
+      "ok": true,
+      "at": "2026-03-09 08:03:51",
+      "detail": "OK"
+    },
+    "tiktok": {
+      "ok": false,
+      "at": "2026-03-09 08:05:39",
+      "detail": "Falló (sin detalle)"
+    },
+    "instagram": {
+      "ok": false,
+      "at": "2026-03-09 08:06:03",
+      "detail": "Falló (sin detalle)"
+    },
+    "facebook": {
+      "ok": false,
+      "at": "2026-03-09 08:06:03",
+      "detail": "Falló (sin detalle)"
+    }
+  },
+  "events": [
+    {
+      "ts": 1772249710,
+      "at": "2026-02-27 21:35:10",
+      "kind": "job_start",
+      "message": "Job iniciado"
+    },
+    {
+      "ts": 1772249771,
+      "at": "2026-02-27 21:36:11",
+      "kind": "upload_start",
+      "message": "Iniciando upload: youtube",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772249710.mp4"
+      }
+    },
+    {
+      "ts": 1772249775,
+      "at": "2026-02-27 21:36:15",
+      "kind": "upload_done",
+      "message": "Upload youtube: OK"
+    },
+    {
+      "ts": 1772249775,
+      "at": "2026-02-27 21:36:15",
+      "kind": "job_done",
+      "message": "Job completado",
+      "extra": {
+        "uploads": {
+          "youtube": {
+            "ok": true
+          },
+          "tiktok": {
+            "skipped": true
+          },
+          "instagram": {
+            "skipped": true
+          },
+          "facebook": {
+            "skipped": true
+          }
+        }
+      }
+    },
+    {
+      "ts": 1772252284,
+      "at": "2026-02-27 22:18:04",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772255657,
+      "at": "2026-02-27 23:14:17",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772256957,
+      "at": "2026-02-27 23:35:57",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772256997,
+      "at": "2026-02-27 23:36:37",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772257267,
+      "at": "2026-02-27 23:41:07",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772257281,
+      "at": "2026-02-27 23:41:21",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772257537,
+      "at": "2026-02-27 23:45:37",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772257721,
+      "at": "2026-02-27 23:48:41",
+      "kind": "job_start",
+      "message": "Job iniciado"
+    },
+    {
+      "ts": 1772257749,
+      "at": "2026-02-27 23:49:09",
+      "kind": "upload_start",
+      "message": "Iniciando upload: youtube",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772257721.mp4"
+      }
+    },
+    {
+      "ts": 1772257754,
+      "at": "2026-02-27 23:49:14",
+      "kind": "upload_done",
+      "message": "Upload youtube: OK"
+    },
+    {
+      "ts": 1772257754,
+      "at": "2026-02-27 23:49:14",
+      "kind": "upload_start",
+      "message": "Iniciando upload: tiktok",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772257721.mp4"
+      }
+    },
+    {
+      "ts": 1772257761,
+      "at": "2026-02-27 23:49:21",
+      "kind": "upload_done",
+      "message": "Upload tiktok: FALLÓ"
+    },
+    {
+      "ts": 1772257761,
+      "at": "2026-02-27 23:49:21",
+      "kind": "job_done",
+      "message": "Job completado",
+      "extra": {
+        "uploads": {
+          "youtube": {
+            "ok": true
+          },
+          "tiktok": {
+            "ok": false
+          },
+          "instagram": {
+            "skipped": true
+          },
+          "facebook": {
+            "skipped": true
+          }
+        }
+      }
+    },
+    {
+      "ts": 1772258078,
+      "at": "2026-02-27 23:54:38",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772258079,
+      "at": "2026-02-27 23:54:39",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772258079,
+      "at": "2026-02-27 23:54:39",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772258204,
+      "at": "2026-02-27 23:56:44",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772293003,
+      "at": "2026-02-28 09:36:43",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772293005,
+      "at": "2026-02-28 09:36:45",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772302136,
+      "at": "2026-02-28 12:08:56",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772302158,
+      "at": "2026-02-28 12:09:18",
+      "kind": "reset_creds",
+      "message": "Credenciales eliminadas: tiktok",
+      "extra": {
+        "deleted": [
+          "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/sessions/David/tiktok/storage_state.json"
+        ]
+      }
+    },
+    {
+      "ts": 1772302161,
+      "at": "2026-02-28 12:09:21",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772302164,
+      "at": "2026-02-28 12:09:24",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772302404,
+      "at": "2026-02-28 12:13:24",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772307289,
+      "at": "2026-02-28 13:34:49",
+      "kind": "job_start",
+      "message": "Job iniciado"
+    },
+    {
+      "ts": 1772307331,
+      "at": "2026-02-28 13:35:31",
+      "kind": "upload_start",
+      "message": "Iniciando upload: youtube",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772307289.mp4"
+      }
+    },
+    {
+      "ts": 1772307336,
+      "at": "2026-02-28 13:35:36",
+      "kind": "upload_done",
+      "message": "Upload youtube: OK"
+    },
+    {
+      "ts": 1772307336,
+      "at": "2026-02-28 13:35:36",
+      "kind": "job_done",
+      "message": "Job completado",
+      "extra": {
+        "uploads": {
+          "youtube": {
+            "ok": true
+          },
+          "tiktok": {
+            "skipped": true
+          },
+          "instagram": {
+            "skipped": true
+          },
+          "facebook": {
+            "skipped": true
+          }
+        }
+      }
+    },
+    {
+      "ts": 1772307418,
+      "at": "2026-02-28 13:36:58",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772312675,
+      "at": "2026-02-28 15:04:35",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772312678,
+      "at": "2026-02-28 15:04:38",
+      "kind": "login_start",
+      "message": "Login iniciado: instagram"
+    },
+    {
+      "ts": 1772312820,
+      "at": "2026-02-28 15:07:00",
+      "kind": "login_start",
+      "message": "Login iniciado: facebook"
+    },
+    {
+      "ts": 1772312919,
+      "at": "2026-02-28 15:08:39",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772313015,
+      "at": "2026-02-28 15:10:15",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772313026,
+      "at": "2026-02-28 15:10:26",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772313032,
+      "at": "2026-02-28 15:10:32",
+      "kind": "job_start",
+      "message": "Job iniciado"
+    },
+    {
+      "ts": 1772313101,
+      "at": "2026-02-28 15:11:41",
+      "kind": "upload_start",
+      "message": "Iniciando upload: youtube",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772313032.mp4"
+      }
+    },
+    {
+      "ts": 1772313114,
+      "at": "2026-02-28 15:11:54",
+      "kind": "upload_done",
+      "message": "Upload youtube: OK"
+    },
+    {
+      "ts": 1772313114,
+      "at": "2026-02-28 15:11:54",
+      "kind": "upload_start",
+      "message": "Iniciando upload: instagram",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772313032.mp4"
+      }
+    },
+    {
+      "ts": 1772313114,
+      "at": "2026-02-28 15:11:54",
+      "kind": "upload_error",
+      "message": "Upload instagram: ERROR",
+      "extra": {
+        "error": "Traceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 612, in _call_social_uploader\n    return bool(fn(video_path, user))\n                ^^^^^^^^^^^^^^^^^^^^\nTypeError: subir_instagram() missing 1 required positional argument: 'profile_dir'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 628, in do_platform\n    ok = runner()\n         ^^^^^^^^\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 659, in <lambda>\n    lambda: _call_social_uploader(\"subir_instagram\", [\"subir_instagram\", \"upload\", \"main\"], video_path, user)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 614, in _call_social_uploader\n    return bool(fn(video_path))\n                ^^^^^^^^^^^^^^\nTypeError: subir_instagram() missing 2 required positional arguments: 'titulo' and 'profile_dir'"
+      }
+    },
+    {
+      "ts": 1772313114,
+      "at": "2026-02-28 15:11:54",
+      "kind": "upload_start",
+      "message": "Iniciando upload: facebook",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772313032.mp4"
+      }
+    },
+    {
+      "ts": 1772313114,
+      "at": "2026-02-28 15:11:54",
+      "kind": "upload_error",
+      "message": "Upload facebook: ERROR",
+      "extra": {
+        "error": "Traceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 612, in _call_social_uploader\n    return bool(fn(video_path, user))\n                ^^^^^^^^^^^^^^^^^^^^\nTypeError: subir_facebook() missing 1 required positional argument: 'profile_dir'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 628, in do_platform\n    ok = runner()\n         ^^^^^^^^\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 667, in <lambda>\n    lambda: _call_social_uploader(\"subir_facebook\", [\"subir_facebook\", \"upload\", \"main\"], video_path, user)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 614, in _call_social_uploader\n    return bool(fn(video_path))\n                ^^^^^^^^^^^^^^\nTypeError: subir_facebook() missing 2 required positional arguments: 'titulo' and 'profile_dir'"
+      }
+    },
+    {
+      "ts": 1772313114,
+      "at": "2026-02-28 15:11:54",
+      "kind": "job_done",
+      "message": "Job completado",
+      "extra": {
+        "uploads": {
+          "youtube": {
+            "ok": true
+          },
+          "tiktok": {
+            "skipped": true
+          },
+          "instagram": {
+            "ok": false,
+            "error": "Traceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 612, in _call_social_uploader\n    return bool(fn(video_path, user))\n                ^^^^^^^^^^^^^^^^^^^^\nTypeError: subir_instagram() missing 1 required positional argument: 'profile_dir'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 628, in do_platform\n    ok = runner()\n         ^^^^^^^^\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 659, in <lambda>\n    lambda: _call_social_uploader(\"subir_instagram\", [\"subir_instagram\", \"upload\", \"main\"], video_path, user)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 614, in _call_social_uploader\n    return bool(fn(video_path))\n                ^^^^^^^^^^^^^^\nTypeError: subir_instagram() missing 2 required positional arguments: 'titulo' and 'profile_dir'"
+          },
+          "facebook": {
+            "ok": false,
+            "error": "Traceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 612, in _call_social_uploader\n    return bool(fn(video_path, user))\n                ^^^^^^^^^^^^^^^^^^^^\nTypeError: subir_facebook() missing 1 required positional argument: 'profile_dir'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 628, in do_platform\n    ok = runner()\n         ^^^^^^^^\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 667, in <lambda>\n    lambda: _call_social_uploader(\"subir_facebook\", [\"subir_facebook\", \"upload\", \"main\"], video_path, user)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/app.py\", line 614, in _call_social_uploader\n    return bool(fn(video_path))\n                ^^^^^^^^^^^^^^\nTypeError: subir_facebook() missing 2 required positional arguments: 'titulo' and 'profile_dir'"
+          }
+        }
+      }
+    },
+    {
+      "ts": 1772333990,
+      "at": "2026-02-28 20:59:50",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772456844,
+      "at": "2026-03-02 07:07:24",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772456851,
+      "at": "2026-03-02 07:07:31",
+      "kind": "job_start",
+      "message": "Job iniciado"
+    },
+    {
+      "ts": 1772456866,
+      "at": "2026-03-02 07:07:46",
+      "kind": "upload_start",
+      "message": "Iniciando upload: youtube",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772456851.mp4"
+      }
+    },
+    {
+      "ts": 1772456870,
+      "at": "2026-03-02 07:07:50",
+      "kind": "upload_done",
+      "message": "Upload youtube: OK"
+    },
+    {
+      "ts": 1772456870,
+      "at": "2026-03-02 07:07:50",
+      "kind": "upload_start",
+      "message": "Iniciando upload: instagram",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772456851.mp4"
+      }
+    },
+    {
+      "ts": 1772456892,
+      "at": "2026-03-02 07:08:12",
+      "kind": "upload_done",
+      "message": "Upload instagram: FALLÓ"
+    },
+    {
+      "ts": 1772456892,
+      "at": "2026-03-02 07:08:12",
+      "kind": "upload_start",
+      "message": "Iniciando upload: facebook",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772456851.mp4"
+      }
+    },
+    {
+      "ts": 1772456892,
+      "at": "2026-03-02 07:08:12",
+      "kind": "upload_done",
+      "message": "Upload facebook: FALLÓ"
+    },
+    {
+      "ts": 1772456892,
+      "at": "2026-03-02 07:08:12",
+      "kind": "job_done",
+      "message": "Job completado",
+      "extra": {
+        "uploads": {
+          "youtube": {
+            "ok": true
+          },
+          "tiktok": {
+            "skipped": true
+          },
+          "instagram": {
+            "ok": false
+          },
+          "facebook": {
+            "ok": false
+          }
+        }
+      }
+    },
+    {
+      "ts": 1772751101,
+      "at": "2026-03-05 16:51:41",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772751106,
+      "at": "2026-03-05 16:51:46",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772751125,
+      "at": "2026-03-05 16:52:05",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752275,
+      "at": "2026-03-05 17:11:15",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752304,
+      "at": "2026-03-05 17:11:44",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752377,
+      "at": "2026-03-05 17:12:57",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752379,
+      "at": "2026-03-05 17:12:59",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752379,
+      "at": "2026-03-05 17:12:59",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752379,
+      "at": "2026-03-05 17:12:59",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752383,
+      "at": "2026-03-05 17:13:03",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752928,
+      "at": "2026-03-05 17:22:08",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772752952,
+      "at": "2026-03-05 17:22:32",
+      "kind": "job_start",
+      "message": "Job iniciado"
+    },
+    {
+      "ts": 1772753037,
+      "at": "2026-03-05 17:23:57",
+      "kind": "upload_start",
+      "message": "Iniciando upload: youtube",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772752952.mp4"
+      }
+    },
+    {
+      "ts": 1772753108,
+      "at": "2026-03-05 17:25:08",
+      "kind": "upload_done",
+      "message": "Upload youtube: OK"
+    },
+    {
+      "ts": 1772753108,
+      "at": "2026-03-05 17:25:08",
+      "kind": "upload_start",
+      "message": "Iniciando upload: instagram",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772752952.mp4"
+      }
+    },
+    {
+      "ts": 1772753134,
+      "at": "2026-03-05 17:25:34",
+      "kind": "upload_done",
+      "message": "Upload instagram: FALLÓ"
+    },
+    {
+      "ts": 1772753134,
+      "at": "2026-03-05 17:25:34",
+      "kind": "upload_start",
+      "message": "Iniciando upload: facebook",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772752952.mp4"
+      }
+    },
+    {
+      "ts": 1772753134,
+      "at": "2026-03-05 17:25:34",
+      "kind": "upload_done",
+      "message": "Upload facebook: FALLÓ"
+    },
+    {
+      "ts": 1772753134,
+      "at": "2026-03-05 17:25:34",
+      "kind": "job_done",
+      "message": "Job completado",
+      "extra": {
+        "uploads": {
+          "youtube": {
+            "ok": true
+          },
+          "tiktok": {
+            "skipped": true
+          },
+          "instagram": {
+            "ok": false
+          },
+          "facebook": {
+            "ok": false
+          }
+        }
+      }
+    },
+    {
+      "ts": 1772753248,
+      "at": "2026-03-05 17:27:28",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772753261,
+      "at": "2026-03-05 17:27:41",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772753283,
+      "at": "2026-03-05 17:28:03",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772753286,
+      "at": "2026-03-05 17:28:06",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772753836,
+      "at": "2026-03-05 17:37:16",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1772753846,
+      "at": "2026-03-05 17:37:26",
+      "kind": "reset_creds",
+      "message": "Credenciales eliminadas: tiktok",
+      "extra": {
+        "deleted": []
+      }
+    },
+    {
+      "ts": 1772753847,
+      "at": "2026-03-05 17:37:27",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772753851,
+      "at": "2026-03-05 17:37:31",
+      "kind": "login_start",
+      "message": "Login iniciado: tiktok"
+    },
+    {
+      "ts": 1772754793,
+      "at": "2026-03-05 17:53:13",
+      "kind": "job_start",
+      "message": "Job iniciado"
+    },
+    {
+      "ts": 1772754887,
+      "at": "2026-03-05 17:54:47",
+      "kind": "upload_start",
+      "message": "Iniciando upload: youtube",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772754793.mp4"
+      }
+    },
+    {
+      "ts": 1772755029,
+      "at": "2026-03-05 17:57:09",
+      "kind": "upload_done",
+      "message": "Upload youtube: OK"
+    },
+    {
+      "ts": 1772755029,
+      "at": "2026-03-05 17:57:09",
+      "kind": "upload_start",
+      "message": "Iniciando upload: tiktok",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772754793.mp4"
+      }
+    },
+    {
+      "ts": 1772756619,
+      "at": "2026-03-05 18:23:39",
+      "kind": "upload_done",
+      "message": "Upload tiktok: FALLÓ"
+    },
+    {
+      "ts": 1772756619,
+      "at": "2026-03-05 18:23:39",
+      "kind": "upload_start",
+      "message": "Iniciando upload: instagram",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772754793.mp4"
+      }
+    },
+    {
+      "ts": 1772757145,
+      "at": "2026-03-05 18:32:25",
+      "kind": "upload_done",
+      "message": "Upload instagram: FALLÓ"
+    },
+    {
+      "ts": 1772757145,
+      "at": "2026-03-05 18:32:25",
+      "kind": "upload_start",
+      "message": "Iniciando upload: facebook",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1772754793.mp4"
+      }
+    },
+    {
+      "ts": 1772757145,
+      "at": "2026-03-05 18:32:25",
+      "kind": "upload_done",
+      "message": "Upload facebook: FALLÓ"
+    },
+    {
+      "ts": 1772757145,
+      "at": "2026-03-05 18:32:25",
+      "kind": "job_done",
+      "message": "Job completado",
+      "extra": {
+        "uploads": {
+          "youtube": {
+            "ok": true
+          },
+          "tiktok": {
+            "ok": false
+          },
+          "instagram": {
+            "ok": false
+          },
+          "facebook": {
+            "ok": false
+          }
+        }
+      }
+    },
+    {
+      "ts": 1773064975,
+      "at": "2026-03-09 08:02:55",
+      "kind": "config",
+      "message": "Configuración guardada"
+    },
+    {
+      "ts": 1773064978,
+      "at": "2026-03-09 08:02:58",
+      "kind": "job_start",
+      "message": "Job iniciado"
+    },
+    {
+      "ts": 1773065027,
+      "at": "2026-03-09 08:03:47",
+      "kind": "upload_start",
+      "message": "Iniciando upload: youtube",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1773064978.mp4"
+      }
+    },
+    {
+      "ts": 1773065031,
+      "at": "2026-03-09 08:03:51",
+      "kind": "upload_done",
+      "message": "Upload youtube: OK"
+    },
+    {
+      "ts": 1773065031,
+      "at": "2026-03-09 08:03:51",
+      "kind": "upload_start",
+      "message": "Iniciando upload: tiktok",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1773064978.mp4"
+      }
+    },
+    {
+      "ts": 1773065139,
+      "at": "2026-03-09 08:05:39",
+      "kind": "upload_done",
+      "message": "Upload tiktok: FALLÓ"
+    },
+    {
+      "ts": 1773065139,
+      "at": "2026-03-09 08:05:39",
+      "kind": "upload_start",
+      "message": "Iniciando upload: instagram",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1773064978.mp4"
+      }
+    },
+    {
+      "ts": 1773065163,
+      "at": "2026-03-09 08:06:03",
+      "kind": "upload_done",
+      "message": "Upload instagram: FALLÓ"
+    },
+    {
+      "ts": 1773065163,
+      "at": "2026-03-09 08:06:03",
+      "kind": "upload_start",
+      "message": "Iniciando upload: facebook",
+      "extra": {
+        "video": "/Users/david.salas/Library/CloudStorage/OneDrive-WPPCloud/Documents/bots/youtube-bot/videos/David_1773064978.mp4"
+      }
+    },
+    {
+      "ts": 1773065163,
+      "at": "2026-03-09 08:06:03",
+      "kind": "upload_done",
+      "message": "Upload facebook: FALLÓ"
+    },
+    {
+      "ts": 1773065163,
+      "at": "2026-03-09 08:06:03",
+      "kind": "job_done",
+      "message": "Job completado",
+      "extra": {
+        "uploads": {
+          "youtube": {
+            "ok": true
+          },
+          "tiktok": {
+            "ok": false
+          },
+          "instagram": {
+            "ok": false
+          },
+          "facebook": {
+            "ok": false
+          }
+        }
+      }
+    },
+    {
+      "ts": 1773607627,
+      "at": "2026-03-15 20:47:07",
+      "kind": "job_error",
+      "message": "Job falló",
+      "extra": {
+        "error": "video_usuario\n    return None\n  File \"<decorator-gen-55>\", line 2, in write_videofile\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/decorators.py\", line 54, in requires_duration\n  File \"<decorator-gen-54>\", line 2, in write_videofile\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/decorators.py\", line 135, in use_clip_fps_by_default\n  File \"<decorator-gen-53>\", line 2, in write_videofile\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/decorators.py\", line 22, in convert_masks_to_RGB\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/video/VideoClip.py\", line 300, in write_videofile\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/video/io/ffmpeg_writer.py\", line 213, in ffmpeg_write_video\n  File \"/home/davidksinc/videobot/venv/lib/python3.11/site-packages/moviepy/video/io/ffmpeg_writer.py\", line 129, in __init__\n  File \"/usr/lib/python3.11/subprocess.py\", line 1024, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.11/subprocess.py\", line 1901, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: '/home/davidksinc/videobot/venv/lib/python3.11/site-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v7.0.2'"
+      }
+    }
+  ],
+  "tenant_id": "default",
+  "plan": "starter",
+  "target_seconds": 30,
+  "content_source": "ai",
+  "content_file_path": "",
+  "speech_history": [],
+  "voice_provider": "gtts",
+  "video_provider": "pixabay",
+  "premium_backgrounds_enabled": false,
+  "premium_backgrounds_dir": "",
+  "premium_backgrounds_allowance": 0,
+  "script_provider": "local",
+  "email": "",
+  "password_hash": "",
+  "avatar_mode": "none",
+  "avatar_prompt": "",
+  "avatar_image_path": ""
+}

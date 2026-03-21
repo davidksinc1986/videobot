@@ -1,0 +1,344 @@
+1. CONFIRMED ISSUES
+- **Area B: Generation pipeline (Core Engine Failure)**
+  - **Issue:** Video generation breaks completely when using modern MoviePy versions (`v2.0.0+`) due to API changes (`AttributeError: 'VideoFileClip' object has no attribute 'crop'`).
+  - **Files:** `requirements.txt`
+  - **Functions:** Entire pipeline dependency resolution
+  - **Root Cause:** Dependency was pinned as `<2.1` which permitted pulling `v2.0.0`, breaking the `v1.x`-centric `generador.py` logic.
+  - **Severity:** CRITICAL
+  - **Status:** FIXED (Pinned back to `<2.0.0`)
+
+- **Area C: Provider integrations (ElevenLabs Failure)**
+  - **Issue:** The ElevenLabs wrapper invocation passes `out_mp3` as the positional `api_key` argument, dropping the actual file writing process and silently corrupting the audio file path generation.
+  - **Files:** `generador.py`
+  - **Functions:** `_generate_tts`
+  - **Root Cause:** Parameter position mismatch between the caller in `generador.py` and the signature in `voz_elevenlabs.py`.
+  - **Severity:** HIGH
+  - **Status:** FIXED
+
+- **Area D: Social Connectors (YouTube Path/Session Leakage Risk)**
+  - **Issue:** `app.py` performed a hacky file copy over the global `token.pickle` because it didn't pass the `user` payload into the uploader function. `subir_youtube.py` also used relative file paths which might fail outside the CWD.
+  - **Files:** `app.py`, `subir_youtube.py`
+  - **Functions:** `_call_youtube_uploader`, `_resolve_token_path`
+  - **Root Cause:** Legacy migration debt where the app tried to shoehorn tenant tokens onto a global session file space.
+  - **Severity:** MEDIUM
+  - **Status:** FIXED
+
+- **Area G: Dashboard/History (Unretrievable Content & Blind Errors)**
+  - **Issue:** Generated videos were just displayed as text paths instead of actual viewable/downloadable outputs, and pipeline errors were completely hidden from the user dashboard. 
+  - **Files:** `app.py`, `templates/user.html`
+  - **Functions:** HTML Dashboard `.events`, `app.py` (`@app.route("/videos/<path:filename>")` created)
+  - **Root Cause:** Incomplete UI wiring and missing static file serving endpoints for protected multi-tenant assets.
+  - **Severity:** HIGH
+  - **Status:** FIXED
+
+- **Area I: Storage/Assets (SQLite Connection Leaks)**
+  - **Issue:** SQLite connection scopes were mistakenly conflated with Python context managers (`with _conn()`), which only manage transactions. This leaves stale connection references open after every storage request, potentially locking WAL files or leaking memory.
+  - **Files:** `storage.py`
+  - **Functions:** `init_db`, `save_user`, `load_user`, `list_users`, `user_exists`, `delete_user`
+  - **Root Cause:** Misunderstanding of `sqlite3` context managers in Python.
+  - **Severity:** MEDIUM
+  - **Status:** FIXED
+
+2. EXACT FILES CHANGED
+- `app.py`
+- `generador.py`
+- `requirements.txt`
+- `storage.py`
+- `subir_youtube.py`
+- `templates/user.html`
+
+3. EXACT FUNCTIONS / ROUTES / COMPONENTS CHANGED
+- `app.py`: `_call_youtube_uploader`, added route `ver_video` (`/videos/<path:filename>`)
+- `generador.py`: `_generate_tts`
+- `storage.py`: `init_db`, `save_user`, `load_user`, `list_users`, `user_exists`, `delete_user`
+- `subir_youtube.py`: `_resolve_token_path`
+- `templates/user.html`: Stats dashboard (`.events` div list)
+
+4. EXACT DIFF
+```diff
+diff --git a/app.py b/app.py
+index 3bdd702..a25f00b 100644
+--- a/app.py
++++ b/app.py
+@@ -1225,7 +1225,7 @@ def _call_youtube_uploader(video_path: str, titulo: str, user: dict) -> bool:
+     from subir_youtube import subir_youtube
+ 
+     if is_admin_legacy_user(user):
+-        return bool(subir_youtube(video_path, titulo))
++        return bool(subir_youtube(video_path, titulo, user=user))
+ 
+     method = (user.get("youtube_auth_method") or "token_upload").strip()
+     if method != "token_upload":
+@@ -1235,28 +1235,7 @@ def _call_youtube_uploader(video_path: str, titulo: str, user: dict) -> bool:
+     if not os.path.exists(user_token):
+         raise FileNotFoundError(f"Falta token.pickle del usuario en: {user_token}")
+ 
+-    global_token = os.path.join(BASE_DIR, "token.pickle")
+-    backup_token = os.path.join(BASE_DIR, "token.pickle.bak_user")
+-    had_global = os.path.exists(global_token)
+-
+-    if had_global:
+-        shutil.copy2(global_token, backup_token)
+-    shutil.copy2(user_token, global_token)
+-
+-    try:
+-        return bool(subir_youtube(video_path, titulo))
+-    finally:
+-        try:
+-            if os.path.exists(global_token):
+-                os.remove(global_token)
+-        except:
+-            pass
+-        try:
+-            if had_global and os.path.exists(backup_token):
+-                shutil.copy2(backup_token, global_token)
+-                os.remove(backup_token)
+-        except:
+-            pass
++    return bool(subir_youtube(video_path, titulo, user=user))
+ 
+ 
+ def _call_social_uploader(module_name: str, func_candidates: list[str], video_path: str, user: dict) -> bool:
+@@ -1608,6 +1587,21 @@ def health():
+         "templates_dir": os.path.abspath("templates"),
+     })
+ 
++from flask import send_from_directory
++
++@app.route("/videos/<path:filename>")
++@login_required
++def ver_video(filename):
++    # Validar acceso básico asegurando que solo los admins o dueños puedan verlo
++    auth = current_auth()
++    if auth.get("role") == "tenant":
++        user_name = auth.get("user", "")
++        # Asume que los videos empiezan con el nombre del usuario
++        if not filename.startswith(_safe_name(user_name) + "_"):
++            abort(403, "No puedes ver videos de otros usuarios")
++    
++    return send_from_directory(VIDEOS_DIR, filename)
++
+ 
+ @app.route("/")
+ @login_required
+diff --git a/generador.py b/generador.py
+index 3cc8866..7b52de2 100644
+--- a/generador.py
++++ b/generador.py
+@@ -1584,10 +1584,14 @@ def _generate_tts(user: dict, texto: str, out_mp3: str) -> None:
+     for provider in providers:
+         try:
+             if provider == "elevenlabs":
++                from voz_elevenlabs import generar_audio
+                 eleven_key = (cred.get("elevenlabs_api_key") or "").strip()
+                 eleven_voice = (cred.get("eleven_voice_id") or "").strip()
+                 if eleven_key and eleven_voice:
+-                    generar_audio(texto, out_mp3, api_key=eleven_key, voice_id=eleven_voice)
++                    tmp_audio = generar_audio(texto, api_key=eleven_key, voice_id=eleven_voice)
++                    if os.path.exists(tmp_audio):
++                        import shutil
++                        shutil.copy2(tmp_audio, out_mp3)
+                     return
+             elif provider == "gtts":
+                 tts = gTTS(text=texto, lang=_gtts_lang(user.get("idioma", "es")))
+diff --git a/requirements.txt b/requirements.txt
+index 87a5de0..8860bad 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,6 +1,6 @@
+ Flask>=3.0.0,<4
+ Werkzeug>=3.0.0,<4
+-moviepy>=1.0.3,<2.1
++moviepy>=1.0.3,<2.0.0
+ imageio-ffmpeg>=0.4.9
+ requests>=2.31.0
+ gTTS>=2.5.1
+diff --git a/storage.py b/storage.py
+index 553388d..3cd45ca 100644
+--- a/storage.py
++++ b/storage.py
+@@ -20,16 +20,20 @@ def _conn() -> sqlite3.Connection:
+ 
+ def init_db() -> None:
+     with _DB_LOCK:
+-        with _conn() as con:
+-            con.execute(
+-                """
+-                CREATE TABLE IF NOT EXISTS users (
+-                    name TEXT PRIMARY KEY,
+-                    payload TEXT NOT NULL,
+-                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
++        con = _conn()
++        try:
++            with con:
++                con.execute(
++                    """
++                    CREATE TABLE IF NOT EXISTS users (
++                        name TEXT PRIMARY KEY,
++                        payload TEXT NOT NULL,
++                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
++                    )
++                    """
+                 )
+-                """
+-            )
++        finally:
++            con.close()
+ 
+ 
+ def save_user(user: dict) -> None:
+@@ -41,23 +45,30 @@ def save_user(user: dict) -> None:
+     payload = json.dumps(user, ensure_ascii=False)
+ 
+     with _DB_LOCK:
+-        with _conn() as con:
+-            con.execute(
+-                """
+-                INSERT INTO users(name, payload, updated_at)
+-                VALUES(?, ?, CURRENT_TIMESTAMP)
+-                ON CONFLICT(name) DO UPDATE SET
+-                    payload=excluded.payload,
+-                    updated_at=CURRENT_TIMESTAMP
+-                """,
+-                (name, payload),
+-            )
++        con = _conn()
++        try:
++            with con:
++                con.execute(
++                    """
++                    INSERT INTO users(name, payload, updated_at)
++                    VALUES(?, ?, CURRENT_TIMESTAMP)
++                    ON CONFLICT(name) DO UPDATE SET
++                        payload=excluded.payload,
++                        updated_at=CURRENT_TIMESTAMP
++                    """,
++                    (name, payload),
++                )
++        finally:
++            con.close()
+ 
+ 
+ def load_user(name: str) -> dict:
+     init_db()
+-    with _conn() as con:
++    con = _conn()
++    try:
+         row = con.execute("SELECT payload FROM users WHERE name = ?", (name,)).fetchone()
++    finally:
++        con.close()
+     if not row:
+         raise FileNotFoundError(name)
+     return json.loads(row[0])
+@@ -65,8 +76,11 @@ def load_user(name: str) -> dict:
+ 
+ def list_users() -> list[dict]:
+     init_db()
+-    with _conn() as con:
++    con = _conn()
++    try:
+         rows = con.execute("SELECT payload FROM users ORDER BY LOWER(name) ASC").fetchall()
++    finally:
++        con.close()
+     users = []
+     for (payload,) in rows:
+         try:
+@@ -78,15 +92,22 @@ def list_users() -> list[dict]:
+ 
+ def user_exists(name: str) -> bool:
+     init_db()
+-    with _conn() as con:
++    con = _conn()
++    try:
+         row = con.execute("SELECT 1 FROM users WHERE name = ?", (name,)).fetchone()
++    finally:
++        con.close()
+     return bool(row)
+ 
+ 
+ def delete_user(name: str) -> None:
+     init_db()
+-    with _conn() as con:
+-        con.execute("DELETE FROM users WHERE name = ?", (name,))
++    con = _conn()
++    try:
++        with con:
++            con.execute("DELETE FROM users WHERE name = ?", (name,))
++    finally:
++        con.close()
+ 
+ 
+ def migrate_json_users_if_needed() -> int:
+diff --git a/subir_youtube.py b/subir_youtube.py
+index 2161c9d..0d012b0 100644
+--- a/subir_youtube.py
++++ b/subir_youtube.py
+@@ -34,14 +34,16 @@ def _resolve_token_path(user: dict | None, token_path: str | None) -> str:
+     if token_path:
+         return token_path
+ 
++    base_dir = os.path.dirname(os.path.abspath(__file__))
++
+     if user and isinstance(user, dict):
+         nombre = (user.get("nombre") or "").strip()
+         if nombre.lower() == "david":
+-            return "token.pickle"
++            return os.path.join(base_dir, "token.pickle")
+         if nombre:
+-            return os.path.join("sessions", nombre, "youtube", "token.pickle")
++            return os.path.join(base_dir, "sessions", nombre, "youtube", "token.pickle")
+ 
+-    return "token.pickle"
++    return os.path.join(base_dir, "token.pickle")
+ 
+ 
+ def _load_credentials(token_file: str):
+diff --git a/templates/user.html b/templates/user.html
+index 9920d23..ba91866 100644
+--- a/templates/user.html
++++ b/templates/user.html
+@@ -214,7 +214,10 @@
+           <div class="event"><b>Modo scheduler:</b> {% if user.schedule_mode == "window" %}Ventana {{ user.ventana_inicio }} - {{ user.ventana_fin }}{% else %}24/7{% endif %}</div>
+           <div class="event"><b>Formato de título:</b> Consejo por nicho + autor + secuencia (ej. #{{ (user.title_counter or 0) + 1 }})</div>
+           <div class="event"><b>{{ t.last_run }}:</b> {{ user.ultimo_run if user.ultimo_run else '-' }}</div>
+-          <div class="event"><b>{{ t.last_video }}:</b> <span style="word-break:break-word;">{{ user.ultimo_video if user.ultimo_video else '-' }}</span></div>
++          {% if user.ultimo_error %}
++          <div class="event" style="color: red;"><b>{{ t.last_error if t.last_error else 'Último error' }}:</b> {{ user.ultimo_error }}</div>
++          {% endif %}
++          <div class="event"><b>{{ t.last_video }}:</b> <span style="word-break:break-word;">{% if user.ultimo_video %}<a href="/videos/{{ user.ultimo_video.split('/')[-1] }}" target="_blank">Ver video</a>{% else %}-{% endif %}</span></div>
+         </div>
+ 
+         <div class="hr"></div>
+```
+
+5. EXACT VERIFICATION COMMANDS
+```bash
+# Force reinstall MoviePy to the correct dependency boundary (<2.0.0)
+venv/bin/pip install "moviepy>=1.0.3,<2.0.0"
+
+# Verify all backend fixes load completely
+venv/bin/python -m py_compile app.py subir_youtube.py generador.py storage.py
+
+# Simulate creating an end-to-end user state and running the job sync to test the generation and fallback mechanisms safely
+cat << 'TEST' > test_generation_pipeline.py
+from app import ensure_defaults, load_user
+from generador import generar_video_usuario
+u = ensure_defaults({"nombre": "test_saas_user", "email": "saas@test.com", "password_hash": "xxx", "video_provider": "pixabay"})
+from storage import save_user; save_user(u)
+u = load_user('test_saas_user')
+print(f"✅ Generated output ready at: {generar_video_usuario(u)}")
+TEST
+venv/bin/python test_generation_pipeline.py
+```
+
+6. EXACT MANUAL TESTS
+1. **User Login:** Launch the dev server via `venv/bin/python app.py`. Visit `http://localhost:5055/login` and log in with your superuser credentials. Create a new user from the root dashboard. Log out, then log back in supplying the new user's email and password to verify tenant access constraints.
+2. **Dashboard UI Retrieval:** Enter the target user's configuration panel (`/usuario/<name>`), force generate a video (or wait for the scheduler), and scroll to the Activity Summary (Resumen de actividad). Click the new "Ver video" hyperlinked anchor text to download/play the output. 
+3. **Error Handling Surface:** Temporarily invalidate your Pixabay key or OpenAI key intentionally. Verify the actual stacktrace and fallback execution is safely trapped and displayed in red directly onto the UI as "Último error".
+4. **Publishing Flow Setup:** Under YouTube/Social tabs, perform a token upload (e.g., `token.pickle` for YouTube) and allow the system scheduler (`15s` background tick) to invoke the background uploader to verify the payload isolation across multiple accounts is now safe.
+
+7. NEXT-LEVEL ROADMAP
+- **Reliability:** The current `sqlite` deployment relies on `threading.Lock()` coupled with `sqlite3` driver limitations. Transitioning to `SQLAlchemy` async session bounds + `aiosqlite` or PostgreSQL would eliminate blocking operations on multi-tenant writes.
+- **Observability:** Move raw traceback error mapping (`ultimo_error`) into proper Sentry/Datadog instrumentation.
+- **UX & Registration:** Introduce an automated Stripe/Payment gateway checkout that dynamically invokes the `/crear` logic internally, granting a zero-touch SaaS self-serve sign-up without needing manual admin provisioning.
+- **Scalability:** The `scheduler_loop` resides fully within `app.py` threading. It MUST be decoupled into a proper asynchronous task worker queue (e.g., Celery or RQ backed by Redis) to prevent blocking the Gunicorn/Flask request workers during mass generation.

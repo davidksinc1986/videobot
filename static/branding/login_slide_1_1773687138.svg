@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="700" viewBox="0 0 1800 700" fill="none">
+  <defs>
+    <linearGradient id="blueGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9EF6FF"/>
+      <stop offset="40%" stop-color="#31A8FF"/>
+      <stop offset="100%" stop-color="#2357FF"/>
+    </linearGradient>
+    <linearGradient id="yellowGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF6A3"/>
+      <stop offset="40%" stop-color="#FFD84D"/>
+      <stop offset="100%" stop-color="#F2A500"/>
+    </linearGradient>
+    <linearGradient id="whiteGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#BFE8FF"/>
+    </linearGradient>
+    <filter id="glowBlue" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glowYellow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#050816" flood-opacity="0.55"/>
+    </filter>
+    <filter id="spray" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="8" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2"/>
+    </filter>
+    <style>
+      .top {
+        font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
+        font-size: 108px;
+        font-weight: 900;
+        font-style: italic;
+        letter-spacing: 1px;
+      }
+      .main {
+        font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
+        font-size: 250px;
+        font-weight: 900;
+        font-style: italic;
+        letter-spacing: -4px;
+      }
+      .strokeDark { stroke:#06111E; stroke-width:18; stroke-linejoin:round; paint-order:stroke fill; }
+      .strokeThin { stroke:#E8F7FF; stroke-opacity:.55; stroke-width:4; paint-order:stroke fill; }
+      .splatBlue { fill:#2F8CFF; fill-opacity:.22; }
+      .splatYellow { fill:#FFD84D; fill-opacity:.18; }
+    </style>
+  </defs>
+
+  <!-- transparent background: decorative splashes only -->
+  <g opacity="0.95">
+    <circle class="splatBlue" cx="210" cy="390" r="26"/>
+    <circle class="splatBlue" cx="290" cy="338" r="14"/>
+    <circle class="splatBlue" cx="1510" cy="406" r="18"/>
+    <circle class="splatYellow" cx="1180" cy="310" r="20"/>
+    <circle class="splatYellow" cx="1360" cy="505" r="22"/>
+    <path class="splatBlue" d="M88 250c28-28 72-32 107-11 22 13 34 34 39 57-34-6-59 0-81 18-23 18-34 43-38 77-26-9-44-27-54-52-16-39-8-67 27-89Z"/>
+    <path class="splatYellow" d="M1568 274c31-18 63-15 91 7 18 14 29 34 34 62-27-6-50-4-73 8-22 11-40 29-57 57-17-14-29-30-35-50-11-38-2-65 40-84Z"/>
+  </g>
+
+  <!-- top line -->
+  <g filter="url(#softShadow)" transform="translate(470 145) rotate(-3)">
+    <text class="top strokeDark" fill="url(#whiteGrad)">Media by</text>
+  </g>
+
+  <!-- main word -->
+  <g filter="url(#softShadow)" transform="translate(110 485)">
+    <!-- S -->
+    <text class="main strokeDark" fill="url(#blueGrad)" filter="url(#glowBlue)">S</text>
+
+    <!-- n -->
+    <text x="175" y="0" class="main strokeDark" fill="url(#blueGrad)">n</text>
+
+    <!-- a (python-inspired blue) -->
+    <g transform="translate(358 -175) skewX(-10)">
+      <path d="M0 132c0-54 28-82 86-82h38c24 0 39-14 39-36 0-23-15-37-39-37H43V-65h83c59 0 92 31 92 87 0 22-7 42-22 56-10 10-22 17-37 21 19 5 33 13 44 24 17 18 25 39 25 64 0 62-40 102-103 102H0v-58h114c33 0 52-17 52-44 0-28-20-44-56-44H52v-11H0z"
+            fill="url(#blueGrad)" stroke="#06111E" stroke-width="18" stroke-linejoin="round"/>
+      <circle cx="134" cy="-21" r="10" fill="#C8F7FF"/>
+      <circle cx="64" cy="96" r="9" fill="#C8F7FF"/>
+    </g>
+
+    <!-- k : white/icy, not yellow -->
+    <text x="535" y="0" class="main strokeDark" fill="url(#whiteGrad)">k</text>
+
+    <!-- e (yellow lower-python-inspired) -->
+    <g transform="translate(695 -175) skewX(-10)">
+      <path d="M223 -65h-89c-58 0-94 31-94 86 0 22 8 42 23 57 10 10 23 17 38 22-20 5-35 13-46 25-16 17-24 38-24 64 0 62 39 101 103 101h89v-58h-79c-35 0-55-16-55-44 0-28 21-44 57-44h45v-54h-55c-31 0-50-14-50-37 0-22 16-35 40-35h97v17H154v43h69V-65z"
+            fill="url(#yellowGrad)" stroke="#06111E" stroke-width="18" stroke-linejoin="round"/>
+      <circle cx="95" cy="97" r="9" fill="#FFF2AD"/>
+      <circle cx="158" cy="-21" r="10" fill="#FFF2AD"/>
+    </g>
+
+    <!-- python symbol separator -->
+    <g transform="translate(920 -170) rotate(-3)" filter="url(#softShadow)">
+      <path d="M20 90c0-60 30-90 90-90h66c27 0 42-16 42-43V-70h-130v-55h147c58 0 92 34 92 92v57c0 50-28 80-82 90l-60 11v26h-68c-28 0-47 17-47 44 0 28 19 45 52 45h58v-29h60v52c0 59-35 92-95 92H97c-60 0-97-35-97-97V90h20z"
+            fill="url(#blueGrad)" stroke="#06111E" stroke-width="18" stroke-linejoin="round" filter="url(#glowBlue)"/>
+      <circle cx="176" cy="-43" r="11" fill="#D8FAFF"/>
+      <path d="M335 160c0 60-31 90-91 90h-66c-27 0-42 16-42 43v27h130v55H119c-58 0-92-34-92-92v-57c0-50 28-80 82-90l60-11V99h68c28 0 47-17 47-44 0-28-19-45-52-45h-58v29h-60v-52c0-59 35-92 95-92h148c60 0 97 35 97 97v68h-19z"
+            fill="url(#yellowGrad)" stroke="#06111E" stroke-width="18" stroke-linejoin="round" filter="url(#glowYellow)"/>
+      <circle cx="160" cy="293" r="11" fill="#FFF2AD"/>
+    </g>
+
+    <!-- M -->
+    <text x="1260" y="0" class="main strokeDark" fill="url(#yellowGrad)">M</text>
+
+    <!-- a -->
+    <g transform="translate(1460 -175) skewX(-10)">
+      <path d="M0 132c0-54 28-82 86-82h38c24 0 39-14 39-36 0-23-15-37-39-37H43V-65h83c59 0 92 31 92 87 0 22-7 42-22 56-10 10-22 17-37 21 19 5 33 13 44 24 17 18 25 39 25 64 0 62-40 102-103 102H0v-58h114c33 0 52-17 52-44 0-28-20-44-56-44H52v-11H0z"
+            fill="url(#blueGrad)" stroke="#06111E" stroke-width="18" stroke-linejoin="round"/>
+      <circle cx="134" cy="-21" r="10" fill="#C8F7FF"/>
+      <circle cx="64" cy="96" r="9" fill="#C8F7FF"/>
+    </g>
+
+    <!-- f i a -->
+    <text x="1635" y="0" class="main strokeDark" fill="url(#whiteGrad)">f</text>
+    <text x="1740" y="0" class="main strokeDark" fill="url(#yellowGrad)">i</text>
+  </g>
+
+  <!-- last a kept slightly detached to fit canvas -->
+  <g transform="translate(1630 485)" filter="url(#softShadow)">
+    <g transform="translate(0 -175) skewX(-10)">
+      <path d="M0 132c0-54 28-82 86-82h38c24 0 39-14 39-36 0-23-15-37-39-37H43V-65h83c59 0 92 31 92 87 0 22-7 42-22 56-10 10-22 17-37 21 19 5 33 13 44 24 17 18 25 39 25 64 0 62-40 102-103 102H0v-58h114c33 0 52-17 52-44 0-28-20-44-56-44H52v-11H0z"
+            fill="url(#yellowGrad)" stroke="#06111E" stroke-width="18" stroke-linejoin="round"/>
+      <circle cx="134" cy="-21" r="10" fill="#FFF2AD"/>
+      <circle cx="64" cy="96" r="9" fill="#FFF2AD"/>
+    </g>
+  </g>
+
+  <!-- drips -->
+  <g opacity="0.92">
+    <path d="M684 498c0 30-12 45-12 69 0 16 8 27 8 41 0 15-10 25-22 25-13 0-24-11-24-29 0-24 15-40 18-63 3-21-5-34-5-43 0-9 8-17 18-17 12 0 19 8 19 17Z" fill="#D8F4FF"/>
+    <path d="M1205 500c0 24-10 38-10 59 0 15 8 25 8 39 0 15-11 26-24 26-14 0-25-12-25-30 0-22 14-38 17-59 3-20-4-33-4-41 0-10 8-18 19-18 12 0 19 8 19 24Z" fill="#FFD84D"/>
+    <path d="M1474 505c0 25-10 39-10 61 0 16 7 24 7 37 0 17-11 29-24 29-15 0-26-13-26-31 0-21 14-37 17-58 3-21-4-34-4-42 0-10 8-18 19-18 14 0 21 9 21 22Z" fill="#2D95FF"/>
+  </g>
+</svg>

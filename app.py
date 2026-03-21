@@ -96,12 +96,40 @@ def get_branding_assets() -> dict:
             assets[k] = v.strip()
     return assets
 
+import sentry_sdk
+
+# Inicialización de Sentry
+sentry_dsn = os.getenv("SENTRY_DSN")
+if sentry_dsn:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[
+            sentry_sdk.integrations.flask.FlaskIntegration(),
+            sentry_sdk.integrations.celery.CeleryIntegration(),
+        ],
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        traces_sample_rate=1.0,
+        # Set profiles_sample_rate to 1.0 to profile 100%
+        # of sampled transactions.
+        profiles_sample_rate=1.0,
+    )
+
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.getenv("APP_SECRET_KEY", "change-me-in-production")
-init_db()
-_migrated = migrate_json_users_if_needed()
-if _migrated:
-    print(f"✅ Migrados {_migrated} usuarios JSON a SQLite")
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+from models import db
+db.init_app(app)
+
+# En un entorno de producción, la creación de la base de datos y las migraciones
+# se manejarían con herramientas como Alembic. Para este proyecto, realizamos
+# la inicialización aquí para asegurar que todo esté listo al arrancar.
+with app.app_context():
+    _migrated = migrate_json_users_if_needed()
+    if _migrated:
+        print(f"✅ Migrados {_migrated} usuarios JSON a la base de datos.")
 
 SCHEDULER_TICK_SECONDS = 15
 _scheduler_started = False
@@ -1135,36 +1163,7 @@ def _plan_allowed_platforms(plan: str) -> set[str]:
     return set(PLAN_PLATFORM_RULES.get(_pick_plan(plan), PLAN_PLATFORM_RULES["starter"]))
 
 
-# ----------------------------
-# Locks
-# ----------------------------
-
-def lock_file(nombre: str) -> str:
-    return os.path.join(LOCK_DIR, f"{_safe_name(nombre)}.lock")
-
-
-def is_locked(nombre: str) -> bool:
-    return os.path.exists(lock_file(nombre))
-
-
-def try_acquire_lock(nombre: str) -> bool:
-    lf = lock_file(nombre)
-    try:
-        fd = os.open(lf, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-        os.write(fd, str(time.time()).encode("utf-8"))
-        os.close(fd)
-        return True
-    except FileExistsError:
-        return False
-
-
-def release_lock(nombre: str) -> None:
-    lf = lock_file(nombre)
-    try:
-        if os.path.exists(lf):
-            os.remove(lf)
-    except:
-        pass
+from locks import is_locked, try_acquire_lock, release_lock
 
 
 # ----------------------------
@@ -1316,89 +1315,7 @@ def run_uploads_for_user(user: dict, video_path: str) -> dict:
 # Background job (generar + subir)
 # ----------------------------
 
-def run_job_for_user(nombre: str) -> None:
-    if not try_acquire_lock(nombre):
-        return
 
-    try:
-        user = ensure_defaults(load_user(nombre))
-
-        missing = _generation_requirements_missing(user)
-        if missing:
-            missing_text = ", ".join(missing)
-            raise RuntimeError(
-                f"Faltan credenciales/configuración para generar video con los proveedores elegidos: {missing_text}"
-            )
-
-        user["estado"] = "generando"
-        user["ultimo_error"] = ""
-        user["ultimo_run"] = _now_str()
-        user["last_run_ts"] = int(time.time())
-        _append_event(user, "job_start", "Job iniciado")
-        save_user(user)
-
-        _append_event(user, "generate_start", "Generación de video iniciada")
-        out = generar_video_usuario(user)
-        save_user(user)
-        video_path = out.get("video_path") if isinstance(out, dict) else str(out)
-
-        if not video_path:
-            raise RuntimeError("generar_video_usuario no devolvió video_path válido")
-
-        _append_event(user, "generate_done", "Generación completada", {"video": video_path})
-
-        user = ensure_defaults(load_user(nombre))
-        user["estado"] = "subiendo"
-        user["ultimo_video"] = video_path
-        user["ultimo_error"] = ""
-        user["ultimo_run"] = _now_str()
-        user["last_run_ts"] = int(time.time())
-        save_user(user)
-
-        user = ensure_defaults(load_user(nombre))
-        upload_results = run_uploads_for_user(user, video_path)
-        save_user(user)
-
-        user = ensure_defaults(load_user(nombre))
-        user["estado"] = "completado"
-        user["ultimo_video"] = video_path
-        user["ultimo_error"] = ""
-        user["ultimo_run"] = _now_str()
-        user["last_run_ts"] = int(time.time())
-
-        today = datetime.now().strftime("%Y-%m-%d")
-        if user.get("videos_hoy_fecha") != today:
-            user["videos_hoy_fecha"] = today
-            user["videos_hoy"] = 0
-        user["videos_hoy"] = int(user.get("videos_hoy", 0)) + 1
-        user["title_counter"] = int(user.get("title_counter", 0) or 0) + 1
-
-        _append_event(user, "job_done", "Job completado", {"uploads": upload_results})
-        learning = user.get("generation_learning") or {}
-        learning["success"] = int(learning.get("success", 0)) + 1
-        learning["last_success_at"] = _now_str()
-        learning["last_error"] = ""
-        user["generation_learning"] = learning
-        save_user(user)
-
-    except Exception:
-        tb = _short_error(traceback.format_exc())
-        try:
-            user = ensure_defaults(load_user(nombre))
-            user["estado"] = "error"
-            user["ultimo_error"] = tb
-            user["ultimo_run"] = _now_str()
-            user["last_run_ts"] = int(time.time())
-            _append_event(user, "job_error", "Job falló", {"error": tb})
-            learning = user.get("generation_learning") or {}
-            learning["fail"] = int(learning.get("fail", 0)) + 1
-            learning["last_error"] = tb
-            user["generation_learning"] = learning
-            save_user(user)
-        except:
-            pass
-    finally:
-        release_lock(nombre)
 
 
 def _generation_requirements_missing(user: dict) -> list[str]:
@@ -1492,19 +1409,38 @@ def _scheduler_due(user: dict, now_ts: int) -> bool:
 
 
 def scheduler_loop() -> None:
+    """
+    Este loop ya no ejecuta los trabajos directamente. En su lugar, actúa como un
+    despachador, enviando tareas a la cola de Celery para su procesamiento asíncrono.
+    """
+    print("🚀 Starting Celery-based scheduler loop...")
     while True:
         try:
             now_ts = int(time.time())
             for u in list_users():
                 user = ensure_defaults(u)
                 nombre = _safe_name(user.get("nombre", ""))
-                if not nombre or is_locked(nombre):
+                if not nombre:
                     continue
+
+                # La lógica de 'is_locked' ahora está dentro de la tarea Celery para
+                # mayor atomicidad, pero podemos hacer una comprobación rápida aquí
+                # para evitar despachar trabajos innecesarios a la cola.
+                if is_locked(nombre):
+                    continue
+
                 if _scheduler_due(user, now_ts):
-                    th = threading.Thread(target=run_job_for_user, args=(nombre,), daemon=True)
-                    th.start()
-        except Exception:
-            pass
+                    try:
+                        from tasks import process_user_video_job
+                        process_user_video_job.delay(nombre)
+                        print(f"✅ Job dispatched to Celery for user: {nombre}")
+                    except Exception as e:
+                        print(f"❌ Failed to dispatch job for {nombre}: {e}")
+
+        except Exception as e:
+            print(f"‼️ ERROR in scheduler loop: {e}")
+            traceback.print_exc()
+
         time.sleep(SCHEDULER_TICK_SECONDS)
 
 
@@ -1798,8 +1734,16 @@ def generar(nombre):
     if not user_exists(nombre):
         abort(404, f"Usuario no existe: {nombre}")
 
-    th = threading.Thread(target=run_job_for_user, args=(nombre,), daemon=True)
-    th.start()
+    # Despachar la tarea a Celery en lugar de crear un hilo
+    try:
+        from tasks import process_user_video_job
+        process_user_video_job.delay(nombre)
+        # Opcional: añadir un flash message si se desea feedback en la UI
+        # flash(f"✅ Trabajo para {nombre} enviado a la cola.", "success")
+    except Exception as e:
+        print(f"❌ Error al despachar trabajo para {nombre}: {e}")
+        # Opcional: flash(f"❌ Error al enviar el trabajo: {e}", "error")
+
     return redirect("/")
 
 
