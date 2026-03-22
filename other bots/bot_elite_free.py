@@ -20,7 +20,7 @@ import numpy as np
 # CONFIG
 # =====================================
 
-PEXELS_API_KEY = "Qptl9I17ONeRrG6w4F3L3FOGlwnDxUgSYqB7Ew8ggq6BHOg36QKe8agx"
+PEXELS_API_KEY = os.environ.get("DEFAULT_PEXELS_API_KEY", "").strip()
 
 VIDEOS_PER_DAY = 10
 

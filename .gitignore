@@ -3,9 +3,12 @@ __pycache__/
 *.log
 venv/
 .env
+.env.*
+!.env.example
 videos/
 sessions/
 token.pickle
+client_secret.json
 *.mp4
 
 usuarios/

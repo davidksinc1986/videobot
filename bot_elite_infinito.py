@@ -11,11 +11,11 @@ from generador import generar_texto
 # CONFIG
 # ============================================
 
-PEXELS_API_KEY = "Qptl9I17ONeRrG6w4F3L3FOGlwnDxUgSYqB7Ew8ggq6BHOg36QKe8agx"
+PEXELS_API_KEY = os.environ.get("DEFAULT_PEXELS_API_KEY", "").strip()
 
-ELEVEN_API_KEY = "sk_9dd131528a66bd44aed9066c6041ea6ba259ee570f6e073d"
+ELEVEN_API_KEY = os.environ.get("DEFAULT_ELEVEN_API_KEY", "").strip()
 
-VOICE_ID = "18GZPpJvaVG53Nt3H52N"
+VOICE_ID = os.environ.get("DEFAULT_ELEVEN_VOICE_ID", "").strip()
 
 VIDEOS_CADA_MINUTOS = 90
 
@@ -185,4 +185,4 @@ while True:
     schedule.run_pending()
 
     time.sleep(10)
-    
+
