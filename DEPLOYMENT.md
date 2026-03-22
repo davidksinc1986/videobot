@@ -43,6 +43,7 @@ source .venv/bin/activate
 pip install -U pip
 pip install -r requirements.txt
 mkdir -p /opt/videobot-data
+mkdir -p /opt/videobot-secrets
 ```
 
 ## 6) Variables de entorno (superuser y seguridad)
@@ -54,9 +55,18 @@ Contenido recomendado:
 ```env
 APP_PORT=5000
 APP_SECRET_KEY=CAMBIA_ESTA_CLAVE_SUPER_LARGA_Y_ALEATORIA
-SUPERUSER_EMAIL=davidksinc
-SUPERUSER_PASSWORD=M@davi19!
+SUPERUSER_EMAIL=admin@tudominio.com
+SUPERUSER_PASSWORD=CAMBIA_ESTA_PASSWORD
 VIDEOBOT_DATA_DIR=/opt/videobot-data
+REDIS_URL=redis://localhost:6379/0
+VIDEOBOT_RUN_EMBEDDED_SCHEDULER=false
+```
+
+> No guardes `.env`, `client_secret.json` ni `token.pickle` dentro del repo. Usa rutas fuera de `/opt/videobot`, por ejemplo `/opt/videobot-secrets/`.
+
+Si usas OAuth de YouTube, guarda el secreto cliente fuera del repo:
+```bash
+sudo nano /opt/videobot-secrets/client_secret.json
 ```
 
 ## 7) Crear servicio web (systemd)
@@ -73,7 +83,7 @@ After=network.target
 User=ubuntu
 WorkingDirectory=/opt/videobot
 EnvironmentFile=/etc/videobot.env
-ExecStart=/opt/videobot/.venv/bin/gunicorn -w 2 -b 0.0.0.0:5000 app:app
+ExecStart=/opt/videobot/.venv/bin/gunicorn -w 2 -b 127.0.0.1:5000 app:app
 Restart=always
 
 [Install]
@@ -150,8 +160,8 @@ sudo certbot --nginx -d TU_DOMINIO.com
 ## 13) Acceso final
 - URL: `https://TU_DOMINIO.com/login`
 - Superuser:
-  - user: `davidksinc`
-  - pass: `M@davi19!`
+  - user: el valor de `SUPERUSER_EMAIL`
+  - pass: el valor de `SUPERUSER_PASSWORD`
 
 ## 14) Persistencia de datos (anti pérdida en git pull)
 - `VIDEOBOT_DATA_DIR` guarda SQLite, videos, temp y usuarios fuera del repo.

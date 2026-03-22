@@ -34,9 +34,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask import Flask, render_template, request, redirect, jsonify, abort, make_response, session, flash, g
 
-from config import USUARIOS_DIR, TEMP_DIR, VIDEOS_DIR, APP_PORT
+from config import (
+    USUARIOS_DIR,
+    TEMP_DIR,
+    VIDEOS_DIR,
+    APP_PORT,
+    DB_PATH,
+    APP_SECRET_KEY,
+    SUPERUSER_EMAIL,
+    SUPERUSER_PASSWORD,
+    EMBEDDED_SCHEDULER_ENABLED,
+    validate_runtime_config,
+)
 from storage import init_db, migrate_json_users_if_needed, load_user as db_load_user, save_user as db_save_user, list_users as db_list_users, user_exists, delete_user
 from generador import generar_video_usuario, NICHOS as NICHOS_DICT
+
+validate_runtime_config()
 
 
 # ----------------------------
@@ -116,7 +129,7 @@ if sentry_dsn:
     )
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
-app.secret_key = os.getenv("APP_SECRET_KEY", "change-me-in-production")
+app.secret_key = APP_SECRET_KEY
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -673,9 +686,7 @@ def set_lang(lang):
 # ----------------------------
 
 def _superuser_config() -> dict:
-    email = (os.getenv("SUPERUSER_EMAIL") or "davidksinc@gmail.com").strip().lower()
-    pwd = os.getenv("SUPERUSER_PASSWORD") or "M@davi19!"
-    return {"email": email, "password": pwd}
+    return {"email": SUPERUSER_EMAIL, "password": SUPERUSER_PASSWORD}
 
 
 def current_auth() -> dict:
@@ -1417,7 +1428,9 @@ def scheduler_loop() -> None:
     while True:
         try:
             now_ts = int(time.time())
-            for u in list_users():
+            with app.app_context():
+                users = list_users()
+            for u in users:
                 user = ensure_defaults(u)
                 nombre = _safe_name(user.get("nombre", ""))
                 if not nombre:
@@ -1445,6 +1458,8 @@ def scheduler_loop() -> None:
 
 
 def start_scheduler_once() -> None:
+    if not EMBEDDED_SCHEDULER_ENABLED:
+        return
     global _scheduler_started
     if _scheduler_started:
         return
@@ -1542,7 +1557,6 @@ def ver_video(filename):
 @app.route("/")
 @login_required
 def home():
-    start_scheduler_once()
     lang = get_lang()
     auth = current_auth()
     usuarios = [ensure_defaults(u) for u in list_users()]
